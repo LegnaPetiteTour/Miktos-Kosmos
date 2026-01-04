@@ -9,6 +9,7 @@
 ## 🎯 The Problem
 
 You have thousands of photos scattered across:
+
 - iPhone backups
 - WhatsApp exports  
 - Google Photos downloads
@@ -22,6 +23,7 @@ They're mixed with screenshots, memes, duplicates, and blurry shots. You want a 
 Miktos Kosmos is specifically designed to turn messy, multi-source photo libraries into beautifully organized family archives.
 
 **What Makes It Different:**
+
 - 🔒 **Privacy-First** - All processing happens locally, zero cloud uploads
 - 🧹 **Smart Cleanup** - Automatically detects screenshots, duplicates, and low-quality photos
 - ⚡ **Blazing Fast** - Rust-powered backend processes thousands of photos in minutes
@@ -32,10 +34,12 @@ Miktos Kosmos is specifically designed to turn messy, multi-source photo librari
 ## 🚀 Features
 
 ### Smart Detection (Local AI)
+
 - **Face Detection** - Group photos by family members
 - **Screenshot Detection** - Separate screenshots from real photos
 - **Duplicate Detection** - Find exact and near-duplicates across sources
 - **Quality Scoring** - Identify blurry, dark, or low-quality photos
+
 
 ### Multi-Source Intelligence
 - Merge photos from multiple sources without duplicates
@@ -43,17 +47,20 @@ Miktos Kosmos is specifically designed to turn messy, multi-source photo librari
 - Preserve the best version when duplicates exist
 - Smart date extraction from EXIF and filenames
 
+
 ### Organization Options
 - Date-based folders (Year/Month or Year/Month/Day)
 - Event-based organization
 - People-based organization
 - Custom folder structures
 
+
 ### Safe & Reversible
 - Non-destructive preview mode
 - Copy by default (never moves originals)
 - Undo functionality
 - Detailed operation logs
+
 
 ## 📦 Installation
 
@@ -62,12 +69,14 @@ Miktos Kosmos is specifically designed to turn messy, multi-source photo librari
 # Download the latest .dmg from Releases
 # Or install via Homebrew
 brew install photoarchive
+
 ```
 
 ### Windows
 ```bash
 # Download the latest .msi from Releases
 # Or install via winget
+
 winget install photoarchive
 ```
 
@@ -76,7 +85,7 @@ winget install photoarchive
 # Download the latest .AppImage from Releases
 # Or install via package manager
 sudo apt install photoarchive
-```
+```Miktos Kosmos
 
 ## 🏃 Quick Start
 
@@ -86,6 +95,7 @@ sudo apt install photoarchive
 4. **Review Results** - See what it found (duplicates, screenshots, etc.)
 5. **Preview Organization** - See how your archive will look
 6. **Apply** - Create your organized family archive
+Miktos Kosmos is built with modern technologies:
 
 ## 🛠️ Development
 
@@ -94,13 +104,15 @@ PhotoArchive is built with modern technologies:
 - **Backend**: Rust + Tauri 2.0
 - **Database**: SQLite
 - **Image Processing**: ExifTool + Rust image libraries
+
 - **AI Models**: Local ONNX models (no cloud)
 
 ### Prerequisites
 - Node.js 18+
-- Rust 1.70+
-- pnpm (or npm)
 
+```bash
+# Clone the repository
+git clone https://github.com/LegnaPetiteTour/Miktos-Kosmos
 ### Setup
 ```bash
 # Clone the repository
@@ -113,7 +125,8 @@ pnpm install
 # Run in development mode
 pnpm tauri dev
 
-# Build for production
+
+```textuild for production
 pnpm tauri build
 ```
 
@@ -130,8 +143,9 @@ photoarchive/
 │   └── tauri.conf.json
 ├── static/           # Static assets
 ├── tests/            # Test files
-└── docs/             # Documentation
-```
+└── docs/             # DoMiktos Kosmos is built to help people, and your help makes it better.
+
+### Ways to Contribute
 
 ## 🤝 Contributing
 
@@ -144,6 +158,7 @@ We welcome contributions! PhotoArchive is built to help people, and your help ma
 - 🔧 Submit pull requests
 - ⭐ Star the project
 
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 🗺️ Roadmap
@@ -153,16 +168,19 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 - [ ] Core scanning engine
 - [ ] EXIF extraction
 - [ ] Basic duplicate detection
+
 - [ ] Screenshot detection
 - [ ] Date-based organization
 - [ ] Preview mode
 - [ ] Beautiful UI
+
 
 ### v1.1
 - [ ] Face detection
 - [ ] Quality scoring
 - [ ] Advanced duplicate detection
 - [ ] Undo functionality
+
 
 ### v2.0
 - [ ] Timeline view
@@ -180,8 +198,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-## 🙏 Acknowledgments
-
+## 🙏 AcknowledgmentsLegnaPetiteTour/Miktos-Kosmos/issues)
+- Discussions: [Join the conversation](https://github.com/LegnaPetiteTour/Miktos-Kosmos
 - ExifTool by Phil Harvey
 - Tauri team for the amazing framework
 - Svelte community
