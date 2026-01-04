@@ -1,4 +1,4 @@
-# PhotoArchive
+# Miktos Kosmos
 
 > Privacy-first family photo organizer. Transform 10 years of digital chaos into a beautifully organized family archive.
 
@@ -19,7 +19,7 @@ They're mixed with screenshots, memes, duplicates, and blurry shots. You want a 
 
 ## ✨ The Solution
 
-PhotoArchive is specifically designed to turn messy, multi-source photo libraries into beautifully organized family archives.
+Miktos Kosmos is specifically designed to turn messy, multi-source photo libraries into beautifully organized family archives.
 
 **What Makes It Different:**
 - 🔒 **Privacy-First** - All processing happens locally, zero cloud uploads
