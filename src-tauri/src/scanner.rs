@@ -90,9 +90,9 @@ impl Scanner {
 
         // Extract dates
         let created_at = metadata.created().ok()
-            .map(|t| DateTime::<Utc>::from(t));
+            .map(DateTime::<Utc>::from);
         let modified_at = metadata.modified().ok()
-            .map(|t| DateTime::<Utc>::from(t));
+            .map(DateTime::<Utc>::from);
 
         // Extract EXIF data for actual date_taken
         let date_taken = self.extract_exif_date(path).or(modified_at);
@@ -215,7 +215,7 @@ impl Scanner {
         let second = time_parts[2].parse::<u32>().ok()?;
 
         NaiveDateTime::parse_from_str(
-            &format!("{:04}-{:02}-{:02} {:02}:{:02}:{:02}", year, month, day, hour, minute, second),
+            &format!("{year:04}-{month:02}-{day:02} {hour:02}:{minute:02}:{second:02}"),
             "%Y-%m-%d %H:%M:%S"
         )
         .ok()
