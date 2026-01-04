@@ -3,7 +3,7 @@ use crate::types::*;
 
 #[tauri::command]
 pub fn greet(name: &str) -> String {
-    format!("Hello, {}! Welcome to Miktos Kosmos.", name)
+    format!("Hello, {name}! Welcome to Miktos Kosmos.")
 }
 
 #[tauri::command]
