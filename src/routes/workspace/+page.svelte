@@ -12,17 +12,12 @@
 	}
 </script>
 
-<div class="min-h-screen p-8">
+<div class="p-8">
 	<div class="max-w-6xl mx-auto space-y-8">
 		<!-- Header -->
-		<div class="flex items-center justify-between">
-			<div>
-				<h1 class="text-3xl font-bold text-gray-900">Scan Your Photos</h1>
-				<p class="text-gray-600 mt-1">Select a folder to analyze your photo library</p>
-			</div>
-			<a href="/" class="btn-secondary">
-				← Back to Home
-			</a>
+		<div>
+			<h1 class="text-3xl font-bold text-gray-900">Workspace</h1>
+			<p class="text-gray-600 mt-2">Your data, raw & honest</p>
 		</div>
 		
 		<!-- Directory Picker -->
@@ -72,12 +67,16 @@
 		{:else}
 			<!-- Empty State -->
 			<div class="card text-center py-12">
-				<svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-				</svg>
 				<h3 class="text-lg font-medium text-gray-900 mb-2">No scan results yet</h3>
-				<p class="text-gray-500">Select a folder above to start scanning your photos</p>
+				<p class="text-gray-500">Select a folder to start scanning your photos</p>
 			</div>
 		{/if}
+		
+		<!-- Rule -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+			<p class="text-sm text-blue-900">
+				<strong>Workspace = observation, not decision.</strong> View what exists before interpretation.
+			</p>
+		</div>
 	</div>
 </div>

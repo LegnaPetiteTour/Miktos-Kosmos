@@ -18,6 +18,8 @@
 			
 			if (selected && typeof selected === 'string') {
 				selectedPath = selected;
+				// Auto-start scan after selection
+				await startScan();
 			}
 		} catch (e) {
 			error = `Failed to select directory: ${e}`;
