@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+/build/
+dist/
+.svelte-kit/
+
+# Tauri
+/src-tauri/target/
+/src-tauri/WixTools/
+/src-tauri/gen/
+
+# Rust
+**/*.rs.bk
+Cargo.lock
+
+# Environment
+.env
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+.cache/
+temp/
+tmp/
+
+# Generated icons (keep source SVG)
+/src-tauri/icons/*.png
+/src-tauri/icons/*.ico
+/src-tauri/icons/*.icns
