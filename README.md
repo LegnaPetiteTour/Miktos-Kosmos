@@ -40,52 +40,54 @@ Miktos Kosmos is specifically designed to turn messy, multi-source photo librari
 - **Duplicate Detection** - Find exact and near-duplicates across sources
 - **Quality Scoring** - Identify blurry, dark, or low-quality photos
 
-
 ### Multi-Source Intelligence
+
 - Merge photos from multiple sources without duplicates
 - Handle different filename formats (WhatsApp, Facebook, iPhone, etc.)
 - Preserve the best version when duplicates exist
 - Smart date extraction from EXIF and filenames
 
-
 ### Organization Options
+
 - Date-based folders (Year/Month or Year/Month/Day)
 - Event-based organization
 - People-based organization
 - Custom folder structures
 
-
 ### Safe & Reversible
+
 - Non-destructive preview mode
 - Copy by default (never moves originals)
 - Undo functionality
 - Detailed operation logs
 
-
 ## 📦 Installation
 
 ### macOS
+
+
 ```bash
 # Download the latest .dmg from Releases
 # Or install via Homebrew
 brew install photoarchive
-
 ```
 
 ### Windows
+
+
 ```bash
 # Download the latest .msi from Releases
 # Or install via winget
-
 winget install photoarchive
 ```
 
 ### Linux
+
 ```bash
-# Download the latest .AppImage from Releases
+# Download the latest .appImage from Releases
 # Or install via package manager
 sudo apt install photoarchive
-```Miktos Kosmos
+```
 
 ## 🏃 Quick Start
 
@@ -95,25 +97,25 @@ sudo apt install photoarchive
 4. **Review Results** - See what it found (duplicates, screenshots, etc.)
 5. **Preview Organization** - See how your archive will look
 6. **Apply** - Create your organized family archive
-Miktos Kosmos is built with modern technologies:
 
 ## 🛠️ Development
 
-PhotoArchive is built with modern technologies:
+Miktos Kosmos is built with modern technologies:
+
 - **Frontend**: SvelteKit + TypeScript
 - **Backend**: Rust + Tauri 2.0
 - **Database**: SQLite
 - **Image Processing**: ExifTool + Rust image libraries
-
 - **AI Models**: Local ONNX models (no cloud)
 
 ### Prerequisites
-- Node.js 18+
 
-```bash
-# Clone the repository
-git clone https://github.com/LegnaPetiteTour/Miktos-Kosmos
+- Node.js 18+
+- Rust 1.70+
+- pnpm (or npm)
+
 ### Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/photoarchive.git
@@ -131,7 +133,8 @@ pnpm tauri build
 ```
 
 ### Project Structure
-```
+
+```text
 photoarchive/
 ├── src/              # SvelteKit frontend
 │   ├── lib/          # Components and utilities
