@@ -1,12 +1,17 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/core';
 	import { open } from '@tauri-apps/plugin-dialog';
+	import { photoStore, selectedFolderStore, scanningStore } from '$lib/stores/photoStore';
+	import { goto } from '$app/navigation';
 	
-	export let onScanComplete: (result: any) => void = () => {};
+	let error = '';
 	
+	// Subscribe to stores
 	let selectedPath = '';
 	let isScanning = false;
-	let error = '';
+	
+	selectedFolderStore.subscribe(value => selectedPath = value);
+	scanningStore.subscribe(value => isScanning = value);
 	
 	async function selectDirectory() {
 		try {
@@ -17,7 +22,7 @@
 			});
 			
 			if (selected && typeof selected === 'string') {
-				selectedPath = selected;
+				selectedFolderStore.set(selected);
 				// Auto-start scan after selection
 				await startScan();
 			}
@@ -32,16 +37,16 @@
 			return;
 		}
 		
-		isScanning = true;
+		scanningStore.set(true);
 		error = '';
 		
 		try {
 			const result = await invoke('scan_directory', { path: selectedPath });
-			onScanComplete(result);
+			photoStore.setScanResult(result);
 		} catch (e) {
 			error = `Scan failed: ${e}`;
 		} finally {
-			isScanning = false;
+			scanningStore.set(false);
 		}
 	}
 </script>

@@ -1,15 +1,17 @@
 <script lang="ts">
 	import DirectoryPicker from '$lib/components/DirectoryPicker.svelte';
 	import ScanResults from '$lib/components/ScanResults.svelte';
+	import { photoStore } from '$lib/stores/photoStore';
+	import { goto } from '$app/navigation';
 	
 	let scanResult: any = null;
 	let photos: any[] = [];
 	
-	function handleScanComplete(result: any) {
-		console.log('Scan complete:', result);
-		scanResult = result;
-		photos = result.photos || [];
-	}
+	// Subscribe to the global store
+	photoStore.subscribe(value => {
+		scanResult = value;
+		photos = value?.photos || [];
+	});
 </script>
 
 <div class="p-8">
@@ -21,7 +23,7 @@
 		</div>
 		
 		<!-- Directory Picker -->
-		<DirectoryPicker onScanComplete={handleScanComplete} />
+		<DirectoryPicker />
 		
 		<!-- Results -->
 		{#if scanResult}
@@ -62,6 +64,16 @@
 							</p>
 						{/if}
 					</div>
+				</div>
+				
+				<!-- Next Step Button -->
+				<div class="flex justify-end mt-4">
+					<a 
+						href="/analyze"
+						class="btn-primary inline-block"
+					>
+						Next: Analyze Photos →
+					</a>
 				</div>
 			{/if}
 		{:else}
