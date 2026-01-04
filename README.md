@@ -65,7 +65,6 @@ Miktos Kosmos is specifically designed to turn messy, multi-source photo librari
 
 ### macOS
 
-
 ```bash
 # Download the latest .dmg from Releases
 # Or install via Homebrew
@@ -73,7 +72,6 @@ brew install photoarchive
 ```
 
 ### Windows
-
 
 ```bash
 # Download the latest .msi from Releases
