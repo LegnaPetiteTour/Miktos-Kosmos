@@ -1,4 +1,5 @@
 import { writable, derived } from 'svelte/store';
+import { browser } from '$app/environment';
 
 export interface Photo {
 	file_name: string;
@@ -28,23 +29,52 @@ export interface ScanResult {
 	stats: ScanStats;
 }
 
-// Store for scan results
+// Get initial value from localStorage if in browser
+const getInitialValue = (): ScanResult | null => {
+	if (browser) {
+		const stored = localStorage.getItem('photoStore');
+		if (stored) {
+			try {
+				return JSON.parse(stored);
+			} catch {
+				return null;
+			}
+		}
+	}
+	return null;
+};
+
+// Store for scan results with localStorage persistence
 function createPhotoStore() {
-	const { subscribe, set, update } = writable<ScanResult | null>(null);
+	const { subscribe, set, update } = writable<ScanResult | null>(getInitialValue());
 	
 	return {
 		subscribe,
-		setScanResult: (result: ScanResult) => set(result),
-		clear: () => set(null),
+		setScanResult: (result: ScanResult) => {
+			set(result);
+			if (browser) {
+				localStorage.setItem('photoStore', JSON.stringify(result));
+			}
+		},
+		clear: () => {
+			set(null);
+			if (browser) {
+				localStorage.removeItem('photoStore');
+			}
+		},
 		updatePhoto: (filePath: string, updates: Partial<Photo>) => {
 			update(state => {
 				if (!state) return state;
-				return {
+				const newState = {
 					...state,
 					photos: state.photos.map(photo => 
 						photo.file_path === filePath ? { ...photo, ...updates } : photo
 					)
 				};
+				if (browser) {
+					localStorage.setItem('photoStore', JSON.stringify(newState));
+				}
+				return newState;
 			});
 		}
 	};

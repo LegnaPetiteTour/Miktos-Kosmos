@@ -2,7 +2,6 @@
 	import { photoStore, screenshots, nonScreenshots } from '$lib/stores/photoStore';
 	import FileBrowser from '$lib/components/FileBrowser.svelte';
 	import ScanResults from '$lib/components/ScanResults.svelte';
-	import { goto } from '$app/navigation';
 	
 	let scanResult: any = null;
 	let photos: any[] = [];
@@ -22,12 +21,12 @@
 				<h1 class="text-3xl font-bold text-gray-900">Analyze</h1>
 				<p class="text-gray-600 mt-2">Understand patterns & make decisions</p>
 			</div>
-			<a 
-				href="/workspace"
-				class="btn-secondary inline-block"
+			<button 
+				class="btn-secondary"
+				on:click={() => window.location.href = '/workspace'}
 			>
 				← Back to Workspace
-			</a>
+			</button>
 		</div>
 		
 		{#if scanResult && photos.length > 0}
@@ -35,30 +34,38 @@
 			<ScanResults stats={scanResult.stats} />
 			
 			<!-- Insights -->
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-				<div class="card text-center">
-					<div class="text-3xl font-bold text-blue-600">{$nonScreenshots.length}</div>
-					<div class="text-sm text-gray-600 mt-1">Regular Photos</div>
+			<div class="grid grid-cols-3 gap-6">
+				<!-- Screenshots Detection -->
+				<div class="card">
+					<div class="text-2xl mb-2">📸</div>
+					<h3 class="text-lg font-semibold text-gray-900 mb-1">Screenshots Detected</h3>
+					<p class="text-3xl font-bold text-primary-600">{$screenshots.length}</p>
+					<p class="text-sm text-gray-500 mt-1">
+						{(($screenshots.length / photos.length) * 100).toFixed(1)}% of total
+					</p>
 				</div>
 				
-				<div class="card text-center">
-					<div class="text-3xl font-bold text-yellow-600">{$screenshots.length}</div>
-					<div class="text-sm text-gray-600 mt-1">Screenshots</div>
+				<!-- Regular Photos -->
+				<div class="card">
+					<div class="text-2xl mb-2">📷</div>
+					<h3 class="text-lg font-semibold text-gray-900 mb-1">Regular Photos</h3>
+					<p class="text-3xl font-bold text-primary-600">{$nonScreenshots.length}</p>
+					<p class="text-sm text-gray-500 mt-1">
+						{(($nonScreenshots.length / photos.length) * 100).toFixed(1)}% of total
+					</p>
 				</div>
 				
-				<div class="card text-center">
-					<div class="text-3xl font-bold text-purple-600">
-						{((photos.reduce((sum, p) => sum + p.file_size, 0) / 1024 / 1024) / photos.length).toFixed(1)} MB
-					</div>
-					<div class="text-sm text-gray-600 mt-1">Avg File Size</div>
+				<!-- Organization Potential -->
+				<div class="card">
+					<div class="text-2xl mb-2">📁</div>
+					<h3 class="text-lg font-semibold text-gray-900 mb-1">Organization Potential</h3>
+					<p class="text-3xl font-bold text-primary-600">High</p>
+					<p class="text-sm text-gray-500 mt-1">Ready to transform</p>
 				</div>
 			</div>
 			
 			<!-- File Browser -->
-			<div>
-				<h2 class="text-2xl font-bold text-gray-900 mb-4">Browse Files</h2>
-				<FileBrowser {photos} />
-			</div>
+			<FileBrowser photos={photos} />
 			
 			<!-- Next Step -->
 			<div class="flex justify-between items-center">
@@ -67,24 +74,24 @@
 						<strong>Ready to organize?</strong> Review patterns and proceed to transform your library.
 					</p>
 				</div>
-				<a 
-					href="/transform"
-					class="btn-primary whitespace-nowrap inline-block"
+				<button 
+					class="btn-primary whitespace-nowrap"
+					on:click={() => window.location.href = '/transform'}
 				>
 					Next: Transform →
-				</a>
+				</button>
 			</div>
 		{:else}
 			<!-- Empty State -->
 			<div class="card text-center py-16">
 				<h3 class="text-xl font-medium text-gray-900 mb-2">No scan data available</h3>
 				<p class="text-gray-500 mb-6">Scan a folder first to see analysis</p>
-				<a 
-					href="/workspace"
-					class="btn-primary inline-block"
+				<button 
+					class="btn-primary"
+					on:click={() => window.location.href = '/workspace'}
 				>
 					Go to Workspace
-				</a>
+				</button>
 			</div>
 		{/if}
 	</div>

@@ -9,23 +9,27 @@
 	
 	$: filteredPhotos = photos
 		.filter(photo => {
+			if (!photo) return false;
+			
 			// Filter by type
 			if (filterType === 'screenshots' && !photo.is_screenshot) return false;
 			if (filterType === 'photos' && photo.is_screenshot) return false;
 			
 			// Filter by search query
-			if (searchQuery && !photo.file_name.toLowerCase().includes(searchQuery.toLowerCase())) {
+			if (searchQuery && photo.file_name && !photo.file_name.toLowerCase().includes(searchQuery.toLowerCase())) {
 				return false;
 			}
 			
 			return true;
 		})
 		.sort((a, b) => {
+			if (!a || !b) return 0;
+			
 			switch (sortBy) {
 				case 'name':
-					return a.file_name.localeCompare(b.file_name);
+					return (a.file_name || '').localeCompare(b.file_name || '');
 				case 'size':
-					return b.file_size - a.file_size;
+					return (b.file_size || 0) - (a.file_size || 0);
 				case 'date':
 					if (!a.date_taken || !b.date_taken) return 0;
 					return new Date(b.date_taken).getTime() - new Date(a.date_taken).getTime();
@@ -33,6 +37,12 @@
 					return 0;
 			}
 		});
+	
+	function getParentFolder(filePath: string | undefined): string {
+		if (!filePath) return 'root';
+		const parts = filePath.split('/');
+		return parts.length > 1 ? parts[parts.length - 2] : 'root';
+	}
 </script>
 
 <div class="card space-y-4">
@@ -78,33 +88,35 @@
 	<!-- File list -->
 	<div class="max-h-96 overflow-y-auto space-y-2">
 		{#each filteredPhotos as photo}
-			<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-				<div class="flex-1 min-w-0">
-					<p class="text-sm font-medium text-gray-900 truncate">
-						{photo.file_name}
-					</p>
-					<div class="flex items-center gap-2 text-xs text-gray-500 mt-1">
-						{#if photo.width && photo.height}
-							<span>{photo.width} × {photo.height}</span>
-							<span>•</span>
-						{/if}
-						<span>{(photo.file_size / 1024 / 1024).toFixed(2)} MB</span>
-						{#if photo.date_taken}
-							<span>•</span>
-							<span>{new Date(photo.date_taken).toLocaleDateString()}</span>
-						{/if}
-						{#if photo.is_screenshot}
-							<span class="ml-2 inline-block px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">
-								Screenshot
-							</span>
-						{/if}
+			{#if photo}
+				<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+					<div class="flex-1 min-w-0">
+						<p class="text-sm font-medium text-gray-900 truncate">
+							{photo.file_name || 'Unknown'}
+						</p>
+						<div class="flex items-center gap-2 text-xs text-gray-500 mt-1">
+							{#if photo.width && photo.height}
+								<span>{photo.width} × {photo.height}</span>
+								<span>•</span>
+							{/if}
+							<span>{((photo.file_size || 0) / 1024 / 1024).toFixed(2)} MB</span>
+							{#if photo.date_taken}
+								<span>•</span>
+								<span>{new Date(photo.date_taken).toLocaleDateString()}</span>
+							{/if}
+							{#if photo.is_screenshot}
+								<span class="ml-2 inline-block px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">
+									Screenshot
+								</span>
+							{/if}
+						</div>
+					</div>
+					
+					<div class="text-xs text-gray-400 ml-4">
+						{getParentFolder(photo.file_path)}
 					</div>
 				</div>
-				
-				<div class="text-xs text-gray-400 ml-4">
-					{photo.file_path.split('/').slice(-2, -1)[0] || 'root'}
-				</div>
-			</div>
+			{/if}
 		{/each}
 		
 		{#if filteredPhotos.length === 0}

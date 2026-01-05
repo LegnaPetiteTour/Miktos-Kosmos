@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { photoStore } from '$lib/stores/photoStore';
-	import { goto } from '$app/navigation';
 	
 	let scanResult: any = null;
 	
