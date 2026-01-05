@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { photoStore, screenshots, nonScreenshots } from '$lib/stores/photoStore';
+	import { fileStore, screenshots, nonScreenshots } from '$lib/stores/photoStore';
 	import FileBrowser from '$lib/components/FileBrowser.svelte';
 	import ScanResults from '$lib/components/ScanResults.svelte';
 	
 	let scanResult: any = null;
-	let photos: any[] = [];
+	let files: any[] = [];
 	
 	// Subscribe to the global store
-	photoStore.subscribe(value => {
+	fileStore.subscribe(value => {
 		scanResult = value;
-		photos = value?.photos || [];
+		files = value?.files || [];
 	});
 </script>
 
@@ -29,7 +29,7 @@
 			</button>
 		</div>
 		
-		{#if scanResult && photos.length > 0}
+		{#if scanResult && files.length > 0}
 			<!-- Stats Summary -->
 			<ScanResults stats={scanResult.stats} />
 			
@@ -41,7 +41,7 @@
 					<h3 class="text-lg font-semibold text-gray-900 mb-1">Screenshots Detected</h3>
 					<p class="text-3xl font-bold text-primary-600">{$screenshots.length}</p>
 					<p class="text-sm text-gray-500 mt-1">
-						{(($screenshots.length / photos.length) * 100).toFixed(1)}% of total
+						{(($screenshots.length / files.length) * 100).toFixed(1)}% of total
 					</p>
 				</div>
 				
@@ -51,7 +51,7 @@
 					<h3 class="text-lg font-semibold text-gray-900 mb-1">Regular Photos</h3>
 					<p class="text-3xl font-bold text-primary-600">{$nonScreenshots.length}</p>
 					<p class="text-sm text-gray-500 mt-1">
-						{(($nonScreenshots.length / photos.length) * 100).toFixed(1)}% of total
+						{(($nonScreenshots.length / files.length) * 100).toFixed(1)}% of total
 					</p>
 				</div>
 				
@@ -65,7 +65,7 @@
 			</div>
 			
 			<!-- File Browser -->
-			<FileBrowser photos={photos} />
+			<FileBrowser photos={files} />
 			
 			<!-- Next Step -->
 			<div class="flex justify-between items-center">

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { photoStore } from '$lib/stores/photoStore';
+	import { fileStore } from '$lib/stores/photoStore';
 	
 	let scanResult: any = null;
 	
-	photoStore.subscribe(value => {
+	fileStore.subscribe(value => {
 		scanResult = value;
 	});
 </script>
@@ -24,12 +24,12 @@
 			</a>
 		</div>
 		
-		{#if scanResult && scanResult.photos.length > 0}
+		{#if scanResult && scanResult.files && scanResult.files.length > 0}
 			<!-- Organization Preview -->
 			<div class="card">
 				<h2 class="text-xl font-semibold text-gray-900 mb-4">Organization Preview</h2>
 				<p class="text-gray-600 mb-4">
-					Preview how your {scanResult.photos.length} photos will be organized
+					Preview how your {scanResult.files.length} files will be organized
 				</p>
 				
 				<div class="bg-gray-50 rounded-lg p-4 space-y-2">

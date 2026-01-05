@@ -20,9 +20,10 @@ impl Scanner {
     }
 
     pub fn scan(&self) -> Result<ScanResult, Box<dyn std::error::Error>> {
-        let mut photos = Vec::new();
+        let mut files = Vec::new();
         let mut total_size = 0u64;
         let mut screenshot_count = 0;
+        let mut image_count = 0;
         let mut video_count = 0;
 
         for entry in WalkDir::new(&self.root_path)
@@ -36,26 +37,30 @@ impl Scanner {
                     
                     // Check if it's an image file
                     if is_image_extension(&ext) {
-                        if let Ok(metadata) = self.process_photo(entry.path()) {
+                        if let Ok(metadata) = self.process_image(entry.path()) {
                             total_size += metadata.file_size;
                             if metadata.is_screenshot {
                                 screenshot_count += 1;
                             }
-                            photos.push(metadata);
+                            image_count += 1;
+                            files.push(metadata);
                         }
                     }
                     // Check if it's a video file
                     else if is_video_extension(&ext) {
-                        video_count += 1;
-                        total_size += entry.metadata()?.len();
+                        if let Ok(metadata) = self.process_video(entry.path()) {
+                            total_size += metadata.file_size;
+                            video_count += 1;
+                            files.push(metadata);
+                        }
                     }
                 }
             }
         }
 
         // Calculate date range
-        let date_range = photos.iter()
-            .filter_map(|p| p.date_taken)
+        let date_range = files.iter()
+            .filter_map(|f| f.date_taken.or(f.modified_at))
             .fold(None, |acc, date| {
                 match acc {
                     None => Some((date, date)),
@@ -64,18 +69,25 @@ impl Scanner {
             });
 
         let stats = ScanStats {
-            total_photos: photos.len(),
-            total_videos: video_count,
+            total_files: files.len(),
+            file_types: FileTypeStats {
+                images: image_count,
+                videos: video_count,
+                documents: 0,
+                audio: 0,
+                archives: 0,
+                other: 0,
+            },
             screenshots: screenshot_count,
             duplicates: 0, // Will be calculated later
             total_size,
             date_range,
         };
 
-        Ok(ScanResult { photos, stats })
+        Ok(ScanResult { files, stats })
     }
 
-    fn process_photo(&self, path: &Path) -> Result<PhotoMetadata, Box<dyn std::error::Error>> {
+    fn process_image(&self, path: &Path) -> Result<FileMetadata, Box<dyn std::error::Error>> {
         let metadata = fs::metadata(path)?;
         let file_size = metadata.len();
         
@@ -100,21 +112,62 @@ impl Scanner {
         // Detect if it's likely a screenshot
         let is_screenshot = self.is_likely_screenshot(path, width, height);
 
-        Ok(PhotoMetadata {
+        Ok(FileMetadata {
             path: path.to_string_lossy().to_string(),
             file_name: path.file_name()
                 .unwrap_or_default()
                 .to_string_lossy()
                 .to_string(),
             file_size,
+            file_type: FileType::Image,
             created_at,
             modified_at,
             date_taken,
             width,
             height,
+            duration: None,
+            page_count: None,
             hash,
             is_screenshot,
-            is_duplicate: false, // Will be set later during duplicate detection
+            is_duplicate: false,
+            camera_make: None,
+            camera_model: None,
+        })
+    }
+
+    fn process_video(&self, path: &Path) -> Result<FileMetadata, Box<dyn std::error::Error>> {
+        let metadata = fs::metadata(path)?;
+        let file_size = metadata.len();
+        
+        // Calculate file hash
+        let hash = self.calculate_hash(path)?;
+
+        // Extract dates
+        let created_at = metadata.created().ok()
+            .map(DateTime::<Utc>::from);
+        let modified_at = metadata.modified().ok()
+            .map(DateTime::<Utc>::from);
+
+        Ok(FileMetadata {
+            path: path.to_string_lossy().to_string(),
+            file_name: path.file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_string(),
+            file_size,
+            file_type: FileType::Video,
+            created_at,
+            modified_at,
+            date_taken: None,
+            width: None,  // Could extract with ffmpeg later
+            height: None,
+            duration: None,  // Could extract with ffmpeg later
+            page_count: None,
+            hash,
+            is_screenshot: false,
+            is_duplicate: false,
+            camera_make: None,
+            camera_model: None,
         })
     }
 

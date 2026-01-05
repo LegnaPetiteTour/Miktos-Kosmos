@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { beforeNavigate, goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import '../app.css';
 	
@@ -19,10 +19,7 @@
 	let isTauri = false;
 	
 	// Subscribe to page changes
-	page.subscribe(p => {
-		currentPath = p.url.pathname;
-		console.log('Current path:', currentPath);
-	});
+	$: currentPath = $page.url.pathname;
 	
 	onMount(() => {
 		isTauri = '__TAURI__' in window;
@@ -30,8 +27,12 @@
 	});
 	
 	function isActive(href: string): boolean {
-		if (href === '/') return currentPath === '/';
-		return currentPath.startsWith(href);
+		// Exact match for home
+		if (href === '/') {
+			return currentPath === '/';
+		}
+		// For other pages, check if path starts with href
+		return currentPath === href || currentPath.startsWith(href + '/');
 	}
 	
 	async function navigate(href: string) {

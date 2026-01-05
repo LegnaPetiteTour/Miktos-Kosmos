@@ -1,15 +1,15 @@
 <script lang="ts">
 	import DirectoryPicker from '$lib/components/DirectoryPicker.svelte';
 	import ScanResults from '$lib/components/ScanResults.svelte';
-	import { photoStore } from '$lib/stores/photoStore';
+	import { fileStore } from '$lib/stores/photoStore';
 	
 	let scanResult: any = null;
-	let photos: any[] = [];
+	let files: any[] = [];
 	
 	// Subscribe to the global store
-	photoStore.subscribe(value => {
+	fileStore.subscribe(value => {
 		scanResult = value;
-		photos = value?.photos || [];
+		files = value?.files || [];
 	});
 </script>
 
@@ -28,23 +28,28 @@
 		{#if scanResult}
 			<ScanResults stats={scanResult.stats} />
 			
-			<!-- Photo List Preview -->
-			{#if photos.length > 0}
+			<!-- File List Preview -->
+			{#if files.length > 0}
 				<div class="card">
 					<h3 class="text-xl font-bold text-gray-900 mb-4">
-						Found {photos.length} Photos
+						Found {files.length} Files
 					</h3>
 					
 					<div class="max-h-96 overflow-y-auto space-y-2">
-						{#each photos.slice(0, 20) as photo}
+						{#each files.slice(0, 20) as file}
 							<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
 								<div class="flex-1 min-w-0">
 									<p class="text-sm font-medium text-gray-900 truncate">
-										{photo.file_name}
+										{file.file_name}
 									</p>
 									<p class="text-xs text-gray-500">
-										{photo.width && photo.height ? `${photo.width} × ${photo.height}` : 'Unknown size'}
-										{#if photo.is_screenshot}
+										{file.width && file.height ? `${file.width} × ${file.height}` : ''}
+										{#if file.file_type}
+											<span class="ml-2 inline-block px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded">
+												{file.file_type}
+											</span>
+										{/if}
+										{#if file.is_screenshot}
 											<span class="ml-2 inline-block px-2 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded">
 												Screenshot
 											</span>
@@ -52,14 +57,14 @@
 									</p>
 								</div>
 								<div class="text-xs text-gray-500">
-									{(photo.file_size / 1024 / 1024).toFixed(2)} MB
+									{(file.file_size / 1024 / 1024).toFixed(2)} MB
 								</div>
 							</div>
 						{/each}
 						
-						{#if photos.length > 20}
+						{#if files.length > 20}
 							<p class="text-center text-sm text-gray-500 py-4">
-								...and {photos.length - 20} more photos
+								...and {files.length - 20} more files
 							</p>
 						{/if}
 					</div>
@@ -69,7 +74,7 @@
 			<!-- Empty State -->
 			<div class="card text-center py-12">
 				<h3 class="text-lg font-medium text-gray-900 mb-2">No scan results yet</h3>
-				<p class="text-gray-500">Select a folder to start scanning your photos</p>
+				<p class="text-gray-500">Select a folder to start scanning your files</p>
 			</div>
 		{/if}
 		

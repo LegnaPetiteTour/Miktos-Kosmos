@@ -1,42 +1,87 @@
 import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 
-export interface Photo {
+export enum FileType {
+	Image = 'Image',
+	Video = 'Video',
+	Document = 'Document',
+	Audio = 'Audio',
+	Archive = 'Archive',
+	Other = 'Other'
+}
+
+export interface FileMetadata {
 	file_name: string;
 	file_path: string;
 	file_size: number;
+	file_type: FileType;
+	created_at?: string;
+	modified_at?: string;
+	
+	// Optional metadata (depends on file type)
+	date_taken?: string;
 	width?: number;
 	height?: number;
-	date_taken?: string;
+	duration?: number;      // For videos/audio (seconds)
+	page_count?: number;    // For documents
+	
+	hash: string;
 	is_screenshot: boolean;
+	is_duplicate: boolean;
+	
+	// Media-specific
 	camera_make?: string;
 	camera_model?: string;
 }
 
+export interface FileTypeStats {
+	images: number;
+	videos: number;
+	documents: number;
+	audio: number;
+	archives: number;
+	other: number;
+}
+
 export interface ScanStats {
 	total_files: number;
-	total_photos: number;
-	total_videos: number;
-	total_screenshots: number;
-	total_duplicates: number;
+	file_types: FileTypeStats;
+	screenshots: number;
+	duplicates: number;
 	total_size: number;
 	date_range_start?: string;
 	date_range_end?: string;
 }
 
 export interface ScanResult {
-	photos: Photo[];
+	files: FileMetadata[];  // Changed from 'photos'
 	stats: ScanStats;
 }
 
 // Get initial value from localStorage if in browser
 const getInitialValue = (): ScanResult | null => {
 	if (browser) {
-		const stored = localStorage.getItem('photoStore');
+		// Clear old photoStore data
+		const oldData = localStorage.getItem('photoStore');
+		if (oldData) {
+			console.log('Clearing old photoStore data...');
+			localStorage.removeItem('photoStore');
+		}
+		
+		const stored = localStorage.getItem('fileStore');
 		if (stored) {
 			try {
-				return JSON.parse(stored);
+				const parsed = JSON.parse(stored);
+				// Validate it has the new structure
+				if (parsed && parsed.files && Array.isArray(parsed.files)) {
+					return parsed;
+				} else {
+					console.log('Invalid fileStore data, clearing...');
+					localStorage.removeItem('fileStore');
+					return null;
+				}
 			} catch {
+				localStorage.removeItem('fileStore');
 				return null;
 			}
 		}
@@ -45,7 +90,7 @@ const getInitialValue = (): ScanResult | null => {
 };
 
 // Store for scan results with localStorage persistence
-function createPhotoStore() {
+function createFileStore() {
 	const { subscribe, set, update } = writable<ScanResult | null>(getInitialValue());
 	
 	return {
@@ -53,26 +98,27 @@ function createPhotoStore() {
 		setScanResult: (result: ScanResult) => {
 			set(result);
 			if (browser) {
-				localStorage.setItem('photoStore', JSON.stringify(result));
+				localStorage.setItem('fileStore', JSON.stringify(result));
 			}
 		},
 		clear: () => {
 			set(null);
 			if (browser) {
-				localStorage.removeItem('photoStore');
+				localStorage.removeItem('fileStore');
+				localStorage.removeItem('photoStore'); // Clear old data too
 			}
 		},
-		updatePhoto: (filePath: string, updates: Partial<Photo>) => {
+		updateFile: (filePath: string, updates: Partial<FileMetadata>) => {
 			update(state => {
 				if (!state) return state;
 				const newState = {
 					...state,
-					photos: state.photos.map(photo => 
-						photo.file_path === filePath ? { ...photo, ...updates } : photo
+					files: state.files.map(file => 
+						file.file_path === filePath ? { ...file, ...updates } : file
 					)
 				};
 				if (browser) {
-					localStorage.setItem('photoStore', JSON.stringify(newState));
+					localStorage.setItem('fileStore', JSON.stringify(newState));
 				}
 				return newState;
 			});
@@ -80,7 +126,10 @@ function createPhotoStore() {
 	};
 }
 
-export const photoStore = createPhotoStore();
+export const fileStore = createFileStore();
+
+// Backward compatibility alias
+export const photoStore = fileStore;
 
 // Store for selected folder path
 export const selectedFolderStore = writable<string>('');
@@ -89,22 +138,40 @@ export const selectedFolderStore = writable<string>('');
 export const scanningStore = writable<boolean>(false);
 
 // Derived stores for common queries
-export const photoCount = derived(
-	photoStore,
-	$photoStore => $photoStore?.photos.length || 0
+export const fileCount = derived(
+	fileStore,
+	$fileStore => $fileStore?.files.length || 0
 );
 
 export const totalSize = derived(
-	photoStore,
-	$photoStore => $photoStore?.stats.total_size || 0
+	fileStore,
+	$fileStore => $fileStore?.stats.total_size || 0
+);
+
+export const imageFiles = derived(
+	fileStore,
+	$fileStore => $fileStore?.files.filter(f => f.file_type === FileType.Image) || []
+);
+
+export const videoFiles = derived(
+	fileStore,
+	$fileStore => $fileStore?.files.filter(f => f.file_type === FileType.Video) || []
+);
+
+export const documentFiles = derived(
+	fileStore,
+	$fileStore => $fileStore?.files.filter(f => f.file_type === FileType.Document) || []
 );
 
 export const screenshots = derived(
-	photoStore,
-	$photoStore => $photoStore?.photos.filter(p => p.is_screenshot) || []
+	fileStore,
+	$fileStore => $fileStore?.files.filter(f => f.is_screenshot) || []
 );
 
 export const nonScreenshots = derived(
-	photoStore,
-	$photoStore => $photoStore?.photos.filter(p => !p.is_screenshot) || []
+	fileStore,
+	$fileStore => $fileStore?.files.filter(f => !f.is_screenshot) || []
 );
+
+// Backward compatibility - keeping Photo type for now
+export type Photo = FileMetadata;
