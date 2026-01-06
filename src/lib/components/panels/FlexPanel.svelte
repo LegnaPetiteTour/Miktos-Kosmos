@@ -5,19 +5,18 @@
 	export let minWidth: number = 200;
 	export let minHeight: number = 150;
 	export let defaultFlex: number = 1;
+	export let allowHorizontalResize: boolean = false; // NEW: Control horizontal resize
 	
 	let flexGrow = defaultFlex;
 	let isResizing = false;
-	let resizeEdge: 'left' | 'right' | 'top' | 'bottom' | null = null;
-	let startX = 0;
+	let resizeEdge: 'top' | 'bottom' | null = null;
 	let startY = 0;
 	let startFlex = 0;
 	let panelElement: HTMLDivElement;
 	
-	function handleResizeStart(e: MouseEvent, edge: 'left' | 'right' | 'top' | 'bottom') {
+	function handleResizeStart(e: MouseEvent, edge: 'top' | 'bottom') {
 		isResizing = true;
 		resizeEdge = edge;
-		startX = e.clientX;
 		startY = e.clientY;
 		startFlex = flexGrow;
 		e.preventDefault();
@@ -29,11 +28,7 @@
 		
 		let delta = 0;
 		
-		if (resizeEdge === 'right') {
-			delta = (e.clientX - startX) / 200; // More responsive
-		} else if (resizeEdge === 'left') {
-			delta = (startX - e.clientX) / 200; // Reverse direction
-		} else if (resizeEdge === 'bottom') {
+		if (resizeEdge === 'bottom') {
 			delta = (e.clientY - startY) / 200;
 		} else if (resizeEdge === 'top') {
 			delta = (startY - e.clientY) / 200;
@@ -108,22 +103,6 @@
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	}
 	
-	.resize-left,
-	.resize-right {
-		top: 0;
-		bottom: 0;
-		width: 6px;
-		cursor: ew-resize;
-	}
-	
-	.resize-left {
-		left: -3px;
-	}
-	
-	.resize-right {
-		right: -3px;
-	}
-	
 	.resize-top,
 	.resize-bottom {
 		left: 0;
@@ -154,23 +133,7 @@
 		<slot />
 	</div>
 	
-	<!-- All 4 edge resize handles -->
-	<div 
-		class="resize-handle resize-left"
-		class:active={isResizing && resizeEdge === 'left'}
-		on:mousedown={(e) => handleResizeStart(e, 'left')}
-		role="separator"
-		aria-orientation="vertical"
-	></div>
-	
-	<div 
-		class="resize-handle resize-right"
-		class:active={isResizing && resizeEdge === 'right'}
-		on:mousedown={(e) => handleResizeStart(e, 'right')}
-		role="separator"
-		aria-orientation="vertical"
-	></div>
-	
+	<!-- ONLY TOP/BOTTOM resize handles (vertical resizing within column) -->
 	<div 
 		class="resize-handle resize-top"
 		class:active={isResizing && resizeEdge === 'top'}
