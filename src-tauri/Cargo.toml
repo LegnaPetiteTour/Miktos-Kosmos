@@ -24,6 +24,7 @@ rusqlite = { version = "0.32", features = ["bundled"] }
 rayon = "1.8"
 thiserror = "1.0"
 kamadak-exif = "0.5"
+tempfile = "3.13"
 
 [features]
 default = ["custom-protocol"]

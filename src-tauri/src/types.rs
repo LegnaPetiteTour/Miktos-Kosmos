@@ -69,3 +69,76 @@ pub struct ScanResult {
     pub files: Vec<FileMetadata>,  // Changed from 'photos'
     pub stats: ScanStats,
 }
+
+// ============================================================================
+// ORGANIZATION / TRANSFORM TYPES
+// ============================================================================
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum OrganizationStrategy {
+    Date,           // YYYY/MM-Month format
+    Year,           // YYYY only
+    YearMonth,      // YYYY/MM
+    FileType,       // Images/Videos/Documents
+    DateAndType,    // YYYY/MM-Month/Images
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum OperationMode {
+    Copy,   // Safe: Keep originals
+    Move,   // Destructive: Remove originals
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FolderPreview {
+    pub path: String,
+    pub file_count: usize,
+    pub total_size: u64,
+    pub files: Vec<String>, // File names that will go here
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationPlan {
+    pub destination_root: String,
+    pub strategy: OrganizationStrategy,
+    pub mode: OperationMode,
+    pub folders: Vec<FolderPreview>,
+    pub total_files: usize,
+    pub total_size: u64,
+    pub files_without_dates: usize, // Files that will go to "Unknown"
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum OperationStatus {
+    Success,
+    Failed,
+    Skipped,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileOperation {
+    pub source_path: String,
+    pub destination_path: String,
+    pub status: OperationStatus,
+    pub error_message: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationResult {
+    pub success: bool,
+    pub operations: Vec<FileOperation>,
+    pub successful_count: usize,
+    pub failed_count: usize,
+    pub skipped_count: usize,
+    pub total_size_processed: u64,
+    pub duration_ms: u64,
+    pub timestamp: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationProgress {
+    pub current_file: String,
+    pub processed: usize,
+    pub total: usize,
+    pub percentage: f32,
+}

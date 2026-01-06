@@ -1,4 +1,6 @@
 use crate::scanner::Scanner;
+use crate::organizer::generate_organization_plan;
+use crate::executor::execute_organization_plan;
 use crate::types::*;
 
 #[tauri::command]
@@ -15,4 +17,26 @@ pub async fn scan_directory(path: String) -> Result<ScanResult, String> {
 #[tauri::command]
 pub fn get_scan_stats(result: ScanResult) -> ScanStats {
     result.stats
+}
+
+// ============================================================================
+// ORGANIZATION COMMANDS
+// ============================================================================
+
+#[tauri::command]
+pub async fn create_organization_plan(
+    files: Vec<FileMetadata>,
+    destination_root: String,
+    strategy: OrganizationStrategy,
+    mode: OperationMode,
+) -> Result<OrganizationPlan, String> {
+    generate_organization_plan(files, destination_root, strategy, mode)
+}
+
+#[tauri::command]
+pub async fn execute_organization(
+    plan: OrganizationPlan,
+    source_files: Vec<FileMetadata>,
+) -> Result<OperationResult, String> {
+    execute_organization_plan(plan, source_files)
 }

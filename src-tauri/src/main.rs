@@ -4,6 +4,8 @@
 mod scanner;
 mod types;
 mod commands;
+mod organizer;
+mod executor;
 
 use commands::*;
 
@@ -15,7 +17,9 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             greet,
             scan_directory,
-            get_scan_stats
+            get_scan_stats,
+            create_organization_plan,
+            execute_organization
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
