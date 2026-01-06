@@ -1,10 +1,13 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { fileStore } from '$lib/stores/photoStore';
-	import { onMount } from 'svelte';
+	import Page from '$lib/ui/layout/Page.svelte';
+	import Section from '$lib/ui/layout/Section.svelte';
+	import StatCard from '$lib/ui/components/StatCard.svelte';
+	import CommandButton from '$lib/ui/components/CommandButton.svelte';
 	
 	let scanResult: any = null;
 	
-	// Subscribe to file store
 	fileStore.subscribe(value => {
 		scanResult = value;
 	});
@@ -13,10 +16,21 @@
 	$: totalFiles = scanResult?.files?.length || 0;
 	$: totalSize = scanResult?.stats?.total_size || 0;
 	$: fileTypes = scanResult?.stats?.file_types;
+	$: hasData = totalFiles > 0;
 	
-	// Calculate date range
+	// File type summary
+	$: fileTypesSummary = (() => {
+		if (!fileTypes) return 'No files';
+		const parts = [];
+		if (fileTypes.images > 0) parts.push(`${fileTypes.images} images`);
+		if (fileTypes.videos > 0) parts.push(`${fileTypes.videos} videos`);
+		if (fileTypes.documents > 0) parts.push(`${fileTypes.documents} docs`);
+		return parts.length > 0 ? parts.join(', ') : 'No files';
+	})();
+	
+	// Date range
 	$: dateRange = (() => {
-		if (!scanResult?.files?.length) return '—';
+		if (!scanResult?.files?.length) return 'No data';
 		
 		const dates = scanResult.files
 			.map((f: any) => f.date_taken || f.modified_at || f.created_at)
@@ -25,189 +39,91 @@
 		
 		if (!dates.length) return 'No dates';
 		
-		const min = new Date(Math.min(...dates));
-		const max = new Date(Math.max(...dates));
+		const min = new Date(Math.min(...dates)).getFullYear();
+		const max = new Date(Math.max(...dates)).getFullYear();
 		
-		const minStr = min.toLocaleDateString();
-		const maxStr = max.toLocaleDateString();
-		
-		return minStr === maxStr ? minStr : `${minStr} - ${maxStr}`;
+		return min === max ? `${min}` : `${min} → ${max}`;
 	})();
 	
 	// Format file size
 	function formatBytes(bytes: number): string {
 		if (bytes === 0) return '0 MB';
-		if (bytes < 1024) return bytes + ' B';
 		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
 		if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
 		return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
 	}
-	
-	// Get file type breakdown
-	$: fileTypeBreakdown = (() => {
-		if (!fileTypes) return [];
-		
-		const types = [];
-		if (fileTypes.images > 0) types.push({ label: 'Images', count: fileTypes.images, color: 'bg-blue-100 text-blue-800' });
-		if (fileTypes.videos > 0) types.push({ label: 'Videos', count: fileTypes.videos, color: 'bg-purple-100 text-purple-800' });
-		if (fileTypes.documents > 0) types.push({ label: 'Docs', count: fileTypes.documents, color: 'bg-green-100 text-green-800' });
-		if (fileTypes.audio > 0) types.push({ label: 'Audio', count: fileTypes.audio, color: 'bg-yellow-100 text-yellow-800' });
-		if (fileTypes.archives > 0) types.push({ label: 'Archives', count: fileTypes.archives, color: 'bg-orange-100 text-orange-800' });
-		if (fileTypes.other > 0) types.push({ label: 'Other', count: fileTypes.other, color: 'bg-gray-100 text-gray-800' });
-		
-		return types;
-	})();
-	
-	// Check if we have data to analyze
-	$: hasData = totalFiles > 0;
-	
-	onMount(() => {
-		console.log('Miktos Kosmos is ready!');
-	});
 </script>
 
-<div class="p-8">
-	<div class="max-w-7xl mx-auto space-y-6">
-		<!-- Header -->
-		<div>
-			<h1 class="text-3xl font-bold text-gray-900">Home</h1>
-			<p class="text-gray-600 mt-2">Orientation & Control</p>
+<Page title="Command Center" subtitle="Local-first file organization and analysis">
+	<!-- Overview Stats -->
+	<Section title="Overview">
+		<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4);">
+			<StatCard
+				label="Total Files"
+				value={totalFiles}
+				meta={fileTypesSummary}
+				icon="📁"
+			/>
+			<StatCard
+				label="Total Size"
+				value={formatBytes(totalSize)}
+				meta={hasData ? `Across ${totalFiles} files` : 'No data yet'}
+				icon="💾"
+			/>
+			<StatCard
+				label="Date Range"
+				value={dateRange}
+				meta={hasData ? 'From file metadata' : 'Scan to discover'}
+				icon="📅"
+			/>
+			<StatCard
+				label="Status"
+				value={hasData ? 'Ready' : 'No data'}
+				meta={hasData ? `${totalFiles} files loaded` : 'No workspace loaded'}
+				icon="⚡"
+			/>
 		</div>
-		
-		<!-- Stats Grid - Horizontal Layout -->
-		<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-			<!-- Total Files -->
-			<div class="card">
-				<div class="text-sm text-gray-600 mb-1">Total Files</div>
-				<div class="text-3xl font-bold text-gray-900 mb-2">{totalFiles}</div>
-				<div class="flex flex-wrap gap-1">
-					{#each fileTypeBreakdown as type}
-						<span class="text-xs px-2 py-1 rounded-full {type.color}">
-							{type.count} {type.label}
-						</span>
-					{/each}
-					{#if fileTypeBreakdown.length === 0}
-						<span class="text-xs text-gray-400">No files</span>
-					{/if}
-				</div>
-			</div>
-			
-			<!-- Total Size -->
-			<div class="card">
-				<div class="text-sm text-gray-600 mb-1">Total Size</div>
-				<div class="text-3xl font-bold text-gray-900">{formatBytes(totalSize)}</div>
-				<div class="text-xs text-gray-500 mt-2">
-					{hasData ? `Across ${totalFiles} files` : 'No data yet'}
-				</div>
-			</div>
-			
-			<!-- Date Range -->
-			<div class="card">
-				<div class="text-sm text-gray-600 mb-1">Date Span</div>
-				<div class="text-lg font-bold text-gray-900 leading-tight">{dateRange}</div>
-				<div class="text-xs text-gray-500 mt-2">
-					{hasData ? 'From file metadata' : 'Scan to discover'}
-				</div>
-			</div>
-			
-			<!-- Status -->
-			<div class="card">
-				<div class="text-sm text-gray-600 mb-1">Status</div>
-				<div class="flex items-center gap-2 mb-2">
-					<span class="w-3 h-3 bg-green-500 rounded-full"></span>
-					<span class="text-lg font-bold text-gray-900">Ready</span>
-				</div>
-				<div class="text-xs text-gray-500">
-					{hasData ? `${totalFiles} files loaded` : 'No workspace loaded'}
-				</div>
-			</div>
+	</Section>
+	
+	<!-- Commands -->
+	<Section title="Commands" description="Actions are previewed and reversible">
+		<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4);">
+			<CommandButton
+				variant="primary"
+				label={hasData ? 'Scan Another Folder' : 'Scan Folder'}
+				description="Select a directory to organize"
+				icon="📁"
+				onClick={() => goto('/workspace')}
+			/>
+			<CommandButton
+				variant="secondary"
+				label="Analyze Files"
+				description={hasData ? 'Find patterns and duplicates' : 'Scan files first'}
+				icon="🔍"
+				disabled={!hasData}
+				disabledReason={!hasData ? 'Scan a workspace first' : undefined}
+				onClick={() => goto('/analyze')}
+			/>
+			<CommandButton
+				variant="secondary"
+				label="Create Structure"
+				description={hasData ? 'Organize into folders' : 'Scan files first'}
+				icon="⚡"
+				disabled={!hasData}
+				disabledReason={!hasData ? 'Run analysis first to validate dates and detect issues' : undefined}
+				onClick={() => goto('/transform')}
+			/>
 		</div>
-		
-		<!-- Primary Actions - Horizontal Cards -->
-		<div class="card">
-			<h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<a 
-					href="/workspace" 
-					class="group p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all border-2 border-blue-200 hover:border-blue-300"
-				>
-					<div class="text-blue-600 font-semibold mb-1">
-						{hasData ? '🔄 Scan Another Folder' : '📁 Scan Folder'}
-					</div>
-					<div class="text-sm text-blue-700">
-						Select a directory to organize
-					</div>
-				</a>
-				
-				<button 
-					on:click={() => window.location.href = '/analyze'}
-					disabled={!hasData}
-					class="group p-4 rounded-lg transition-all border-2 text-left {hasData 
-						? 'bg-purple-50 hover:bg-purple-100 border-purple-200 hover:border-purple-300 cursor-pointer' 
-						: 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-50'}"
-				>
-					<div class="font-semibold mb-1 {hasData ? 'text-purple-600' : 'text-gray-400'}">
-						🔍 Analyze Files {hasData ? `(${totalFiles})` : ''}
-					</div>
-					<div class="text-sm {hasData ? 'text-purple-700' : 'text-gray-400'}">
-						{hasData ? 'Find patterns and duplicates' : 'Scan files first'}
-					</div>
-				</button>
-				
-				<button 
-					on:click={() => window.location.href = '/transform'}
-					disabled={!hasData}
-					class="group p-4 rounded-lg transition-all border-2 text-left {hasData 
-						? 'bg-green-50 hover:bg-green-100 border-green-200 hover:border-green-300 cursor-pointer' 
-						: 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-50'}"
-				>
-					<div class="font-semibold mb-1 {hasData ? 'text-green-600' : 'text-gray-400'}">
-						⚡ Create Structure {hasData ? `(${totalFiles})` : ''}
-					</div>
-					<div class="text-sm {hasData ? 'text-green-700' : 'text-gray-400'}">
-						{hasData ? 'Organize into folders' : 'Scan files first'}
-					</div>
-				</button>
-			</div>
+	</Section>
+	
+	<!-- Recent Activity -->
+	<Section title="Recent Activity">
+		<div style="padding: var(--space-5); text-align: center; color: var(--text-muted);">
+			{#if hasData}
+				<p>Last scanned: {totalFiles} files</p>
+			{:else}
+				<p>No recent activity</p>
+			{/if}
 		</div>
-		
-		<!-- System Status - Horizontal -->
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-			<div class="card">
-				<div class="flex items-center justify-between">
-					<span class="text-sm text-gray-600">Processing Mode</span>
-					<div class="flex items-center gap-2">
-						<span class="w-2 h-2 bg-green-500 rounded-full"></span>
-						<span class="text-sm font-medium text-green-600">Local-only</span>
-					</div>
-				</div>
-			</div>
-			
-			<div class="card">
-				<div class="flex items-center justify-between">
-					<span class="text-sm text-gray-600">Safety Mode</span>
-					<div class="flex items-center gap-2">
-						<span class="w-2 h-2 bg-green-500 rounded-full"></span>
-						<span class="text-sm font-medium text-green-600">On (Copy)</span>
-					</div>
-				</div>
-			</div>
-			
-			<div class="card">
-				<div class="flex items-center justify-between">
-					<span class="text-sm text-gray-600">Last Operation</span>
-					<span class="text-sm font-medium text-gray-900">
-						{hasData ? 'Scanned' : 'None'}
-					</span>
-				</div>
-			</div>
-		</div>
-		
-		<!-- Philosophy Box -->
-		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-			<p class="text-sm text-blue-900">
-				<strong>💡 Home never edits anything.</strong> It orients and launches actions.
-			</p>
-		</div>
-	</div>
-</div>
+	</Section>
+</Page>
