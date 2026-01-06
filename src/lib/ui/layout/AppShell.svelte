@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { NavItem, StatusBadge } from '$lib/types';
 	import Sidebar from './Sidebar.svelte';
-	import TopBar from './TopBar.svelte';
 	
 	export let navItems: NavItem[];
 	export let selectedNavId: string;
@@ -40,10 +39,6 @@
 		{onNavSelect} 
 	/>
 	<div class="app-main">
-		<TopBar 
-			{workspaceLabel} 
-			{statusBadges} 
-		/>
 		<main class="app-content">
 			<slot />
 		</main>

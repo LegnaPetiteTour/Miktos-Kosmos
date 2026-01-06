@@ -39,14 +39,17 @@
 	.statcard-content {
 		display: flex;
 		flex-direction: column;
+		align-items: center;
+		text-align: center;
 		gap: var(--space-3);
 		height: 100%;
 	}
 	
 	.statcard-top {
 		display: flex;
-		align-items: flex-start;
-		gap: var(--space-3);
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-2);
 	}
 	
 	.statcard-icon {

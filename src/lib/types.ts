@@ -15,6 +15,7 @@ export type AppStage =
 export type NavId = 
 	| 'home'
 	| 'workspace'
+	| 'organize'
 	| 'analyze'
 	| 'transform'
 	| 'review'

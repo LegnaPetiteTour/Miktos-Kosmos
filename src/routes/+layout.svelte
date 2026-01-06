@@ -12,8 +12,6 @@
 	const navItems: NavItem[] = [
 		{ id: 'home', label: 'Home', route: '/' },
 		{ id: 'workspace', label: 'Workspace', route: '/workspace' },
-		{ id: 'analyze', label: 'Analyze', route: '/analyze' },
-		{ id: 'transform', label: 'Transform', route: '/transform' },
 		{ id: 'review', label: 'Review', route: '/review' },
 		{ id: 'learn', label: 'Learn', route: '/learn' },
 		{ id: 'settings', label: 'Settings', route: '/settings' },

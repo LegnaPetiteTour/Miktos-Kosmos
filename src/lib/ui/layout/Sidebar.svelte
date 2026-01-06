@@ -52,13 +52,40 @@
 		font-weight: var(--weight-medium);
 		cursor: pointer;
 		border-radius: 6px;
-		transition: all var(--transition-fast);
+		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 		text-align: left;
+		position: relative;
+		overflow: hidden;
+	}
+	
+	.nav-item::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.1) 0%,
+			rgba(255, 255, 255, 0.05) 100%
+		);
+		opacity: 0;
+		transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+		border-radius: 6px;
 	}
 	
 	.nav-item:hover:not(.active) {
 		background-color: var(--nav-hover-bg);
 		color: var(--text);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05),
+		            0 1px 3px rgba(0, 0, 0, 0.08),
+		            inset 0 1px 1px rgba(255, 255, 255, 0.1);
+		transform: translateY(-1px);
+	}
+	
+	.nav-item:hover:not(.active)::before {
+		opacity: 1;
 	}
 	
 	.nav-item.active {

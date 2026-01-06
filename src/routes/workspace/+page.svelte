@@ -36,11 +36,12 @@
 	async function scanFolder(path: string) {
 		isScanning = true;
 		try {
-			const result = await invoke('scan_folder', { path });
-			fileStore.set(result);
+			const result = await invoke('scan_directory', { path });
+			fileStore.setScanResult(result);
 			console.log('Scan complete:', result);
 		} catch (error) {
 			console.error('Scan error:', error);
+			alert(`Scan failed: ${error}`);
 		} finally {
 			isScanning = false;
 		}
