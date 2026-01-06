@@ -1,35 +1,70 @@
-<div class="p-8">
-	<div class="max-w-6xl mx-auto space-y-8">
-		<!-- Header -->
-		<div>
-			<h1 class="text-3xl font-bold text-gray-900">Review</h1>
-			<p class="text-gray-600 mt-2">Safety net — Trust, undo, audit</p>
+<script lang="ts">
+	import Page from '$lib/ui/layout/Page.svelte';
+	import Section from '$lib/ui/layout/Section.svelte';
+	import Card from '$lib/ui/primitives/Card.svelte';
+	import CommandButton from '$lib/ui/components/CommandButton.svelte';
+</script>
+
+<Page title="Review" subtitle="Audit trail and operation history">
+	<!-- Operation History -->
+	<Section title="Operation History" description="All changes are logged and reversible">
+		<Card padding="lg">
+			<div style="text-align: center; padding: var(--space-7) 0;">
+				<div style="font-size: 48px; margin-bottom: var(--space-4);">📋</div>
+				<h3 style="font-size: var(--text-xl); font-weight: var(--weight-semibold); margin-bottom: var(--space-2); color: var(--text);">
+					No operations yet
+				</h3>
+				<p style="font-size: var(--text-base); color: var(--text-muted);">
+					Operations will appear here after you organize files
+				</p>
+			</div>
+		</Card>
+	</Section>
+	
+	<!-- Quick Actions -->
+	<Section title="Review Tools">
+		<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4);">
+			<CommandButton
+				variant="secondary"
+				label="Undo Last Operation"
+				description="Reverse the most recent change"
+				icon="↩️"
+				disabled={true}
+				disabledReason="No operations to undo"
+				onClick={() => console.log('Undo')}
+			/>
+			<CommandButton
+				variant="secondary"
+				label="View Changes"
+				description="See before/after comparison"
+				icon="👁️"
+				disabled={true}
+				disabledReason="No operations yet"
+				onClick={() => console.log('View changes')}
+			/>
+			<CommandButton
+				variant="secondary"
+				label="Export Report"
+				description="Save operation log"
+				icon="📄"
+				disabled={true}
+				disabledReason="No operations yet"
+				onClick={() => console.log('Export')}
+			/>
 		</div>
-		
-		<!-- Operation History -->
-		<div class="card">
-			<h2 class="text-xl font-semibold text-gray-900 mb-4">Operation History</h2>
-			<p class="text-gray-500 text-center py-12">No operations yet</p>
-		</div>
-		
-		<!-- Quick Actions -->
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-			<button class="btn-secondary py-4" disabled>
-				Undo Last Operation
-			</button>
-			<button class="btn-secondary py-4" disabled>
-				View Before/After
-			</button>
-			<button class="btn-secondary py-4" disabled>
-				Export Report
-			</button>
-		</div>
-		
-		<!-- Rule -->
-		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-			<p class="text-sm text-blue-900">
-				<strong>If Review doesn't exist, users don't trust you.</strong> Period.
-			</p>
-		</div>
-	</div>
-</div>
+	</Section>
+	
+	<!-- Trust Message -->
+	<Section title="Trust & Safety">
+		<Card variant="info">
+			<div style="padding: var(--space-4);">
+				<h3 style="font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: var(--space-2); color: var(--info-text);">
+					🛡️ Every operation is logged
+				</h3>
+				<p style="font-size: var(--text-sm); color: var(--info-text); line-height: var(--line-height-relaxed);">
+					Miktos Kosmos records every file operation in detail. You can review, undo, and export operation logs at any time. Default mode is "Copy" to keep your originals safe.
+				</p>
+			</div>
+		</Card>
+	</Section>
+</Page>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { NavItem } from '$lib/types';
+	import ThemeToggle from '../components/ThemeToggle.svelte';
 	
 	export let items: NavItem[];
 	export let selectedId: string;
@@ -50,40 +51,20 @@
 		font-size: var(--text-base);
 		font-weight: var(--weight-medium);
 		cursor: pointer;
-		border-radius: var(--radius-md);
+		border-radius: 6px;
 		transition: all var(--transition-fast);
-		position: relative;
 		text-align: left;
 	}
 	
-	.nav-item:hover {
-		background-color: var(--bg-subtle);
+	.nav-item:hover:not(.active) {
+		background-color: var(--nav-hover-bg);
 		color: var(--text);
 	}
 	
 	.nav-item.active {
-		background-color: var(--accent);
-		color: var(--accent-contrast);
+		background-color: var(--nav-active-bg);
+		color: var(--text);
 		font-weight: var(--weight-semibold);
-		box-shadow: var(--shadow-sm);
-	}
-	
-	.nav-item.active::before {
-		content: '';
-		position: absolute;
-		left: 0;
-		top: 50%;
-		transform: translateY(-50%);
-		width: 3px;
-		height: 60%;
-		background-color: var(--accent-contrast);
-		border-radius: 0 2px 2px 0;
-	}
-	
-	.nav-icon {
-		font-size: 18px;
-		flex-shrink: 0;
-		line-height: 1;
 	}
 	
 	.nav-label {
@@ -102,10 +83,8 @@
 	}
 	
 	.sidebar-footer {
-		padding: var(--space-4);
+		padding: var(--space-3);
 		border-top: 1px solid var(--panel-border);
-		font-size: var(--text-xs);
-		color: var(--text-subtle);
 	}
 </style>
 
@@ -122,9 +101,6 @@
 				class:active={item.id === selectedId}
 				on:click={() => onNavSelect(item.id)}
 			>
-				{#if item.icon}
-					<span class="nav-icon">{item.icon}</span>
-				{/if}
 				<span class="nav-label">{item.label}</span>
 				{#if item.badgeCount && item.badgeCount > 0}
 					<span class="nav-badge">{item.badgeCount}</span>
@@ -134,6 +110,6 @@
 	</nav>
 	
 	<div class="sidebar-footer">
-		<!-- Optional footer content -->
+		<ThemeToggle />
 	</div>
 </aside>

@@ -4,24 +4,26 @@
 	import { onMount } from 'svelte';
 	import type { NavItem, StatusBadge } from '$lib/types';
 	import { fileStore } from '$lib/stores/photoStore';
+	import { themeStore } from '$lib/stores/themeStore';
+	import { icons } from '$lib/ui/icons';
 	import AppShell from '$lib/ui/layout/AppShell.svelte';
 	import '../app.css';
 	
 	const navItems: NavItem[] = [
-		{ id: 'home', label: 'Home', icon: '🏠', route: '/' },
-		{ id: 'workspace', label: 'Workspace', icon: '📁', route: '/workspace' },
-		{ id: 'analyze', label: 'Analyze', icon: '🔍', route: '/analyze' },
-		{ id: 'transform', label: 'Transform', icon: '⚡', route: '/transform' },
-		{ id: 'review', label: 'Review', icon: '📋', route: '/review' },
-		{ id: 'learn', label: 'Learn', icon: '📚', route: '/learn' },
-		{ id: 'settings', label: 'Settings', icon: '⚙️', route: '/settings' },
-		{ id: 'about', label: 'About', icon: 'ℹ️', route: '/about' }
+		{ id: 'home', label: 'Home', route: '/' },
+		{ id: 'workspace', label: 'Workspace', route: '/workspace' },
+		{ id: 'analyze', label: 'Analyze', route: '/analyze' },
+		{ id: 'transform', label: 'Transform', route: '/transform' },
+		{ id: 'review', label: 'Review', route: '/review' },
+		{ id: 'learn', label: 'Learn', route: '/learn' },
+		{ id: 'settings', label: 'Settings', route: '/settings' },
+		{ id: 'about', label: 'About', route: '/about' }
 	];
 	
 	const statusBadges: StatusBadge[] = [
-		{ id: 'local', tone: 'success', text: 'Local-only', icon: '●' },
-		{ id: 'safe', tone: 'success', text: 'Safe mode', icon: '🛡️' },
-		{ id: 'ready', tone: 'neutral', text: 'Ready', icon: '✓' }
+		{ id: 'local', tone: 'success', text: 'Local-only', icon: icons.dot },
+		{ id: 'safe', tone: 'success', text: 'Safe mode', icon: icons.check },
+		{ id: 'ready', tone: 'neutral', text: 'Ready', icon: icons.check }
 	];
 	
 	let selectedNavId: string = 'home';
@@ -34,7 +36,7 @@
 		if (value && value.files && value.files.length > 0) {
 			workspaceLabel = `${value.files.length} files loaded`;
 		} else {
-			workspaceLabel = undefined; // Don't show "None"
+			workspaceLabel = undefined;
 		}
 	});
 	
@@ -59,6 +61,8 @@
 	}
 	
 	onMount(() => {
+		// Initialize theme
+		themeStore.initialize();
 		console.log('Command Center initialized');
 	});
 </script>

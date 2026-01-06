@@ -1,98 +1,116 @@
 <script lang="ts">
-	import { fileStore, screenshots, nonScreenshots } from '$lib/stores/photoStore';
-	import FileBrowser from '$lib/components/FileBrowser.svelte';
-	import ScanResults from '$lib/components/ScanResults.svelte';
+	import { fileStore } from '$lib/stores/photoStore';
+	import Page from '$lib/ui/layout/Page.svelte';
+	import Section from '$lib/ui/layout/Section.svelte';
+	import Card from '$lib/ui/primitives/Card.svelte';
+	import CommandButton from '$lib/ui/components/CommandButton.svelte';
 	
 	let scanResult: any = null;
-	let files: any[] = [];
 	
-	// Subscribe to the global store
 	fileStore.subscribe(value => {
 		scanResult = value;
-		files = value?.files || [];
 	});
+	
+	$: hasFiles = scanResult?.files?.length > 0;
+	$: totalFiles = scanResult?.files?.length || 0;
 </script>
 
-<div class="p-8">
-	<div class="max-w-6xl mx-auto space-y-8">
-		<!-- Header -->
-		<div class="flex items-center justify-between">
-			<div>
-				<h1 class="text-3xl font-bold text-gray-900">Analyze</h1>
-				<p class="text-gray-600 mt-2">Understand patterns & make decisions</p>
+<Page title="Analyze" subtitle="Detect patterns, duplicates, and issues">
+	{#if !hasFiles}
+		<!-- Empty State -->
+		<Section title="No Files to Analyze">
+			<Card padding="lg">
+				<div style="text-align: center; padding: var(--space-7) 0;">
+					<div style="font-size: 48px; margin-bottom: var(--space-4); opacity: 0.3;">◉</div>
+					<h3 style="font-size: var(--text-xl); font-weight: var(--weight-semibold); margin-bottom: var(--space-2); color: var(--text);">
+						No workspace loaded
+					</h3>
+					<p style="font-size: var(--text-base); color: var(--text-muted); margin-bottom: var(--space-5);">
+						Scan a folder first to analyze your files.
+					</p>
+				</div>
+			</Card>
+		</Section>
+	{:else}
+		<!-- Analysis Options -->
+		<Section title="Analysis Options" description="Choose what to analyze">
+			<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4);">
+				<Card>
+					<div style="padding: var(--space-2);">
+						<h3 style="font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: var(--space-2); color: var(--text);">
+							◎ Find Duplicates
+						</h3>
+						<p style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-4);">
+							Detect exact and similar files based on content hash
+						</p>
+						<CommandButton
+							variant="secondary"
+							label="Scan for Duplicates"
+							description={`Analyze ${totalFiles} files`}
+							onClick={() => console.log('Find duplicates')}
+						/>
+					</div>
+				</Card>
+				
+				<Card>
+					<div style="padding: var(--space-2);">
+						<h3 style="font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: var(--space-2); color: var(--text);">
+							◷ Check Dates
+						</h3>
+						<p style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-4);">
+							Verify metadata dates and detect missing information
+						</p>
+						<CommandButton
+							variant="secondary"
+							label="Validate Dates"
+							description={`Check ${totalFiles} files`}
+							onClick={() => console.log('Check dates')}
+						/>
+					</div>
+				</Card>
+				
+				<Card>
+					<div style="padding: var(--space-2);">
+						<h3 style="font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: var(--space-2); color: var(--text);">
+							◈ Generate Report
+						</h3>
+						<p style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-4);">
+							Create a comprehensive analysis report
+						</p>
+						<CommandButton
+							variant="secondary"
+							label="Create Report"
+							description="Export analysis results"
+							onClick={() => console.log('Generate report')}
+						/>
+					</div>
+				</Card>
+				
+				<Card>
+					<div style="padding: var(--space-2);">
+						<h3 style="font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: var(--space-2); color: var(--text);">
+							⚠ Find Issues
+						</h3>
+						<p style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-4);">
+							Detect corrupted files and naming problems
+						</p>
+						<CommandButton
+							variant="secondary"
+							label="Scan Issues"
+							description="Check file integrity"
+							onClick={() => console.log('Find issues')}
+						/>
+					</div>
+				</Card>
 			</div>
-			<button 
-				class="btn-secondary"
-				on:click={() => window.location.href = '/workspace'}
-			>
-				← Back to Workspace
-			</button>
-		</div>
+		</Section>
 		
-		{#if scanResult && files.length > 0}
-			<!-- Stats Summary -->
-			<ScanResults stats={scanResult.stats} />
-			
-			<!-- Insights -->
-			<div class="grid grid-cols-3 gap-6">
-				<!-- Screenshots Detection -->
-				<div class="card">
-					<div class="text-2xl mb-2">📸</div>
-					<h3 class="text-lg font-semibold text-gray-900 mb-1">Screenshots Detected</h3>
-					<p class="text-3xl font-bold text-primary-600">{$screenshots.length}</p>
-					<p class="text-sm text-gray-500 mt-1">
-						{(($screenshots.length / files.length) * 100).toFixed(1)}% of total
-					</p>
+		<Section title="Results">
+			<Card>
+				<div style="padding: var(--space-4); text-align: center; color: var(--text-muted);">
+					Run an analysis to see results here
 				</div>
-				
-				<!-- Regular Photos -->
-				<div class="card">
-					<div class="text-2xl mb-2">📷</div>
-					<h3 class="text-lg font-semibold text-gray-900 mb-1">Regular Photos</h3>
-					<p class="text-3xl font-bold text-primary-600">{$nonScreenshots.length}</p>
-					<p class="text-sm text-gray-500 mt-1">
-						{(($nonScreenshots.length / files.length) * 100).toFixed(1)}% of total
-					</p>
-				</div>
-				
-				<!-- Organization Potential -->
-				<div class="card">
-					<div class="text-2xl mb-2">📁</div>
-					<h3 class="text-lg font-semibold text-gray-900 mb-1">Organization Potential</h3>
-					<p class="text-3xl font-bold text-primary-600">High</p>
-					<p class="text-sm text-gray-500 mt-1">Ready to transform</p>
-				</div>
-			</div>
-			
-			<!-- File Browser -->
-			<FileBrowser photos={files} />
-			
-			<!-- Next Step -->
-			<div class="flex justify-between items-center">
-				<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex-1 mr-4">
-					<p class="text-sm text-blue-900">
-						<strong>Ready to organize?</strong> Review patterns and proceed to transform your library.
-					</p>
-				</div>
-				<button 
-					class="btn-primary whitespace-nowrap"
-					on:click={() => window.location.href = '/transform'}
-				>
-					Next: Transform →
-				</button>
-			</div>
-		{:else}
-			<!-- Empty State -->
-			<div class="card text-center py-16">
-				<h3 class="text-xl font-medium text-gray-900 mb-2">No scan data available</h3>
-				<p class="text-gray-500 mb-6">Scan a folder first to see analysis</p>
-				<button 
-					class="btn-primary"
-					on:click={() => window.location.href = '/workspace'}
-				>
-					Go to Workspace
-				</button>
-			</div>
-		{/if}
-	</div>
-</div>
+			</Card>
+		</Section>
+	{/if}
+</Page>

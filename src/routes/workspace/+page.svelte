@@ -1,88 +1,138 @@
 <script lang="ts">
-	import DirectoryPicker from '$lib/components/DirectoryPicker.svelte';
-	import ScanResults from '$lib/components/ScanResults.svelte';
+	import { invoke } from '@tauri-apps/api/core';
+	import { open } from '@tauri-apps/plugin-dialog';
 	import { fileStore } from '$lib/stores/photoStore';
+	import { icons } from '$lib/ui/icons';
+	import Page from '$lib/ui/layout/Page.svelte';
+	import Section from '$lib/ui/layout/Section.svelte';
+	import Card from '$lib/ui/primitives/Card.svelte';
+	import CommandButton from '$lib/ui/components/CommandButton.svelte';
 	
+	let isScanning = false;
 	let scanResult: any = null;
-	let files: any[] = [];
 	
-	// Subscribe to the global store
 	fileStore.subscribe(value => {
 		scanResult = value;
-		files = value?.files || [];
 	});
+	
+	$: hasFiles = scanResult?.files?.length > 0;
+	
+	async function selectFolder() {
+		try {
+			const selected = await open({
+				directory: true,
+				multiple: false,
+				title: 'Select folder to organize'
+			});
+			
+			if (selected) {
+				await scanFolder(selected as string);
+			}
+		} catch (error) {
+			console.error('Error selecting folder:', error);
+		}
+	}
+	
+	async function scanFolder(path: string) {
+		isScanning = true;
+		try {
+			const result = await invoke('scan_folder', { path });
+			fileStore.set(result);
+			console.log('Scan complete:', result);
+		} catch (error) {
+			console.error('Scan error:', error);
+		} finally {
+			isScanning = false;
+		}
+	}
 </script>
 
-<div class="p-8">
-	<div class="max-w-6xl mx-auto space-y-8">
-		<!-- Header -->
-		<div>
-			<h1 class="text-3xl font-bold text-gray-900">Workspace</h1>
-			<p class="text-gray-600 mt-2">Your data, raw & honest</p>
-		</div>
-		
-		<!-- Directory Picker -->
-		<DirectoryPicker />
-		
-		<!-- Results -->
-		{#if scanResult}
-			<ScanResults stats={scanResult.stats} />
-			
-			<!-- File List Preview -->
-			{#if files.length > 0}
-				<div class="card">
-					<h3 class="text-xl font-bold text-gray-900 mb-4">
-						Found {files.length} Files
+<Page title="Workspace" subtitle="Select and scan folders to organize">
+	{#if !hasFiles}
+		<!-- Empty State -->
+		<Section title="Get Started">
+			<Card padding="lg">
+				<div style="text-align: center; padding: var(--space-7) 0;">
+					<div style="font-size: 64px; margin-bottom: var(--space-4); opacity: 0.2; color: var(--text-muted);">{icons.folder}</div>
+					<h3 style="font-size: var(--text-xl); font-weight: var(--weight-semibold); margin-bottom: var(--space-2); color: var(--text);">
+						No workspace loaded
 					</h3>
-					
-					<div class="max-h-96 overflow-y-auto space-y-2">
-						{#each files.slice(0, 20) as file}
-							<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
-								<div class="flex-1 min-w-0">
-									<p class="text-sm font-medium text-gray-900 truncate">
-										{file.file_name}
-									</p>
-									<p class="text-xs text-gray-500">
-										{file.width && file.height ? `${file.width} × ${file.height}` : ''}
-										{#if file.file_type}
-											<span class="ml-2 inline-block px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded">
-												{file.file_type}
-											</span>
-										{/if}
-										{#if file.is_screenshot}
-											<span class="ml-2 inline-block px-2 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded">
-												Screenshot
-											</span>
-										{/if}
-									</p>
-								</div>
-								<div class="text-xs text-gray-500">
-									{(file.file_size / 1024 / 1024).toFixed(2)} MB
-								</div>
-							</div>
-						{/each}
-						
-						{#if files.length > 20}
-							<p class="text-center text-sm text-gray-500 py-4">
-								...and {files.length - 20} more files
-							</p>
-						{/if}
+					<p style="font-size: var(--text-base); color: var(--text-muted); margin-bottom: var(--space-5); max-width: 500px; margin-left: auto; margin-right: auto;">
+						Select a folder to begin organizing your files. Miktos Kosmos will scan and analyze the contents.
+					</p>
+					<div style="display: flex; gap: var(--space-3); justify-content: center;">
+						<CommandButton
+							variant="primary"
+							label={isScanning ? 'Scanning...' : 'Select Folder'}
+							description="Choose a directory to organize"
+							icon={icons.folder}
+							disabled={isScanning}
+							onClick={selectFolder}
+						/>
 					</div>
 				</div>
-			{/if}
-		{:else}
-			<!-- Empty State -->
-			<div class="card text-center py-12">
-				<h3 class="text-lg font-medium text-gray-900 mb-2">No scan results yet</h3>
-				<p class="text-gray-500">Select a folder to start scanning your files</p>
+			</Card>
+		</Section>
+	{:else}
+		<!-- Files Loaded -->
+		<Section title="Workspace Info">
+			<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4);">
+				<Card>
+					<div style="padding: var(--space-2);">
+						<div style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-2);">Total Files</div>
+						<div style="font-size: var(--text-2xl); font-weight: var(--weight-bold); color: var(--text);">
+							{scanResult.files.length}
+						</div>
+					</div>
+				</Card>
+				
+				<Card>
+					<div style="padding: var(--space-2);">
+						<div style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-2);">File Types</div>
+						<div style="font-size: var(--text-base); color: var(--text);">
+							{#if scanResult.stats?.file_types}
+								{scanResult.stats.file_types.images} images, {scanResult.stats.file_types.videos} videos
+							{/if}
+						</div>
+					</div>
+				</Card>
+				
+				<Card>
+					<div style="padding: var(--space-2);">
+						<div style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-2);">Status</div>
+						<div style="font-size: var(--text-base); font-weight: var(--weight-medium); color: var(--success);">
+							{icons.check} Scanned
+						</div>
+					</div>
+				</Card>
 			</div>
-		{/if}
+		</Section>
 		
-		<!-- Rule -->
-		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-			<p class="text-sm text-blue-900">
-				<strong>Workspace = observation, not decision.</strong> View what exists before interpretation.
-			</p>
-		</div>
-	</div>
-</div>
+		<Section title="Actions">
+			<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4);">
+				<CommandButton
+					variant="secondary"
+					label="Scan Another Folder"
+					description="Load a different directory"
+					icon={icons.folder}
+					onClick={selectFolder}
+				/>
+				<CommandButton
+					variant="secondary"
+					label="Clear Workspace"
+					description="Remove current files"
+					icon={icons.remove}
+					onClick={() => fileStore.clear()}
+				/>
+			</div>
+		</Section>
+		
+		<Section title="Files">
+			<Card>
+				<div style="padding: var(--space-2); color: var(--text-muted);">
+					{scanResult.files.length} files loaded. File browser coming soon.
+				</div>
+			</Card>
+		</Section>
+	{/if}
+</Page>

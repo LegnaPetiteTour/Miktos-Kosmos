@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { fileStore } from '$lib/stores/photoStore';
+	import { icons } from '$lib/ui/icons';
 	import Page from '$lib/ui/layout/Page.svelte';
 	import Section from '$lib/ui/layout/Section.svelte';
 	import StatCard from '$lib/ui/components/StatCard.svelte';
@@ -62,25 +63,25 @@
 				label="Total Files"
 				value={totalFiles}
 				meta={fileTypesSummary}
-				icon="📁"
+				icon={icons.files}
 			/>
 			<StatCard
 				label="Total Size"
 				value={formatBytes(totalSize)}
 				meta={hasData ? `Across ${totalFiles} files` : 'No data yet'}
-				icon="💾"
+				icon={icons.storage}
 			/>
 			<StatCard
 				label="Date Range"
 				value={dateRange}
 				meta={hasData ? 'From file metadata' : 'Scan to discover'}
-				icon="📅"
+				icon={icons.calendar}
 			/>
 			<StatCard
 				label="Status"
 				value={hasData ? 'Ready' : 'No data'}
 				meta={hasData ? `${totalFiles} files loaded` : 'No workspace loaded'}
-				icon="⚡"
+				icon={icons.diamond}
 			/>
 		</div>
 	</Section>
@@ -92,14 +93,14 @@
 				variant="primary"
 				label={hasData ? 'Scan Another Folder' : 'Scan Folder'}
 				description="Select a directory to organize"
-				icon="📁"
+				icon={icons.folder}
 				onClick={() => goto('/workspace')}
 			/>
 			<CommandButton
 				variant="secondary"
 				label="Analyze Files"
 				description={hasData ? 'Find patterns and duplicates' : 'Scan files first'}
-				icon="🔍"
+				icon={icons.search}
 				disabled={!hasData}
 				disabledReason={!hasData ? 'Scan a workspace first' : undefined}
 				onClick={() => goto('/analyze')}
@@ -108,7 +109,7 @@
 				variant="secondary"
 				label="Create Structure"
 				description={hasData ? 'Organize into folders' : 'Scan files first'}
-				icon="⚡"
+				icon={icons.transform}
 				disabled={!hasData}
 				disabledReason={!hasData ? 'Run analysis first to validate dates and detect issues' : undefined}
 				onClick={() => goto('/transform')}

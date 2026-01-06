@@ -1,91 +1,131 @@
 <script lang="ts">
 	import { fileStore } from '$lib/stores/photoStore';
+	import Page from '$lib/ui/layout/Page.svelte';
+	import Section from '$lib/ui/layout/Section.svelte';
+	import Card from '$lib/ui/primitives/Card.svelte';
+	import CommandButton from '$lib/ui/components/CommandButton.svelte';
 	
 	let scanResult: any = null;
 	
 	fileStore.subscribe(value => {
 		scanResult = value;
 	});
+	
+	$: hasFiles = scanResult?.files?.length > 0;
+	$: totalFiles = scanResult?.files?.length || 0;
 </script>
 
-<div class="p-8">
-	<div class="max-w-6xl mx-auto space-y-8">
-		<!-- Header -->
-		<div class="flex items-center justify-between">
-			<div>
-				<h1 class="text-3xl font-bold text-gray-900">Transform</h1>
-				<p class="text-gray-600 mt-2">Turn insight into structure</p>
-			</div>
-			<a 
-				href="/analyze"
-				class="btn-secondary inline-block"
-			>
-				← Back to Analyze
-			</a>
-		</div>
-		
-		{#if scanResult && scanResult.files && scanResult.files.length > 0}
-			<!-- Organization Preview -->
-			<div class="card">
-				<h2 class="text-xl font-semibold text-gray-900 mb-4">Organization Preview</h2>
-				<p class="text-gray-600 mb-4">
-					Preview how your {scanResult.files.length} files will be organized
-				</p>
-				
-				<div class="bg-gray-50 rounded-lg p-4 space-y-2">
-					<div class="font-mono text-sm text-gray-700">
-						📁 organized/<br/>
-						&nbsp;&nbsp;📁 2020/<br/>
-						&nbsp;&nbsp;&nbsp;&nbsp;📁 07-July/<br/>
-						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📷 photo_001.jpg<br/>
-						&nbsp;&nbsp;📁 2022/<br/>
-						&nbsp;&nbsp;&nbsp;&nbsp;📁 09-September/<br/>
-						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📷 photo_002.jpg
-					</div>
-				</div>
-			</div>
-			
-			<!-- Actions -->
-			<div class="card">
-				<h2 class="text-xl font-semibold text-gray-900 mb-4">Choose Action</h2>
-				<div class="space-y-3">
-					<button class="w-full text-left p-4 border-2 border-blue-300 bg-blue-50 rounded-lg hover:border-blue-400 transition">
-						<div class="font-medium text-gray-900">📋 Copy Files (Recommended)</div>
-						<div class="text-sm text-gray-600">Keep originals safe, create organized copies</div>
-					</button>
-					<button class="w-full text-left p-4 border border-gray-300 rounded-lg hover:border-gray-400 transition">
-						<div class="font-medium text-gray-900">🔀 Move Files</div>
-						<div class="text-sm text-gray-600">Relocate files to new structure</div>
-					</button>
-				</div>
-			</div>
-			
-			<!-- Next Step -->
-			<div class="flex justify-between items-center">
-				<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex-1 mr-4">
-					<p class="text-sm text-blue-900">
-						<strong>Almost there!</strong> Review your organization plan before applying changes.
+<Page title="Transform" subtitle="Organize files into structure">
+	{#if !hasFiles}
+		<!-- Empty State -->
+		<Section title="No Files to Transform">
+			<Card padding="lg">
+				<div style="text-align: center; padding: var(--space-7) 0;">
+					<div style="font-size: 48px; margin-bottom: var(--space-4);">⚡</div>
+					<h3 style="font-size: var(--text-xl); font-weight: var(--weight-semibold); margin-bottom: var(--space-2); color: var(--text);">
+						No workspace loaded
+					</h3>
+					<p style="font-size: var(--text-base); color: var(--text-muted); margin-bottom: var(--space-5);">
+						Scan and analyze files before organizing them.
 					</p>
 				</div>
-				<a 
-					href="/review"
-					class="btn-primary whitespace-nowrap inline-block"
-				>
-					Next: Review →
-				</a>
+			</Card>
+		</Section>
+	{:else}
+		<!-- Organization Preview -->
+		<Section title="Organization Preview" description="How your files will be structured">
+			<Card>
+				<div style="padding: var(--space-4);">
+					<div style="font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text-muted); line-height: 1.8;">
+						📁 organized/<br/>
+						&nbsp;&nbsp;📁 2020/<br/>
+						&nbsp;&nbsp;&nbsp;&nbsp;📁 01-January/<br/>
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📷 IMG_0001.jpg<br/>
+						&nbsp;&nbsp;📁 2023/<br/>
+						&nbsp;&nbsp;&nbsp;&nbsp;📁 04-April/<br/>
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📷 IMG_0002.jpg
+					</div>
+				</div>
+			</Card>
+		</Section>
+		
+		<!-- Operation Mode -->
+		<Section title="Operation Mode" description="Choose how to organize files">
+			<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4);">
+				<Card variant="subtle">
+					<div style="padding: var(--space-4);">
+						<div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+							<span style="font-size: 28px;">📋</span>
+							<h3 style="font-size: var(--text-lg); font-weight: var(--weight-semibold); color: var(--text);">
+								Copy Files (Safe)
+							</h3>
+						</div>
+						<p style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-4);">
+							Create organized copies while keeping originals untouched. Recommended for first-time use.
+						</p>
+						<CommandButton
+							variant="primary"
+							label="Copy & Organize"
+							description={`${totalFiles} files`}
+							onClick={() => console.log('Copy mode')}
+						/>
+					</div>
+				</Card>
+				
+				<Card variant="subtle">
+					<div style="padding: var(--space-4);">
+						<div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+							<span style="font-size: 28px;">🔀</span>
+							<h3 style="font-size: var(--text-lg); font-weight: var(--weight-semibold); color: var(--text);">
+								Move Files
+							</h3>
+						</div>
+						<p style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-4);">
+							Relocate files to new structure. Original locations will be empty.
+						</p>
+						<CommandButton
+							variant="secondary"
+							label="Move & Organize"
+							description={`${totalFiles} files`}
+							onClick={() => console.log('Move mode')}
+						/>
+					</div>
+				</Card>
 			</div>
-		{:else}
-			<!-- Empty State -->
-			<div class="card text-center py-16">
-				<h3 class="text-xl font-medium text-gray-900 mb-2">No scan data available</h3>
-				<p class="text-gray-500 mb-6">Scan and analyze a folder first</p>
-				<a 
-					href="/workspace"
-					class="btn-primary inline-block"
-				>
-					Go to Workspace
-				</a>
-			</div>
-		{/if}
-	</div>
-</div>
+		</Section>
+		
+		<!-- Rules -->
+		<Section title="Organization Rules">
+			<Card>
+				<div style="padding: var(--space-4);">
+					<ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2);">
+						<li style="display: flex; align-items: flex-start; gap: var(--space-2);">
+							<span style="color: var(--success);">✓</span>
+							<span style="color: var(--text-muted); font-size: var(--text-sm);">
+								Organize by date (YYYY/MM-Month)
+							</span>
+						</li>
+						<li style="display: flex; align-items: flex-start; gap: var(--space-2);">
+							<span style="color: var(--success);">✓</span>
+							<span style="color: var(--text-muted); font-size: var(--text-sm);">
+								Preserve original filenames
+							</span>
+						</li>
+						<li style="display: flex; align-items: flex-start; gap: var(--space-2);">
+							<span style="color: var(--success);">✓</span>
+							<span style="color: var(--text-muted); font-size: var(--text-sm);">
+								Handle duplicates automatically
+							</span>
+						</li>
+						<li style="display: flex; align-items: flex-start; gap: var(--space-2);">
+							<span style="color: var(--success);">✓</span>
+							<span style="color: var(--text-muted); font-size: var(--text-sm);">
+								Log all operations for review
+							</span>
+						</li>
+					</ul>
+				</div>
+			</Card>
+		</Section>
+	{/if}
+</Page>

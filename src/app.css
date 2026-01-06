@@ -48,6 +48,10 @@
 	--neutral-bg: #f3f4f6;
 	--neutral-text: #374151;
 	
+	/* Navigation */
+	--nav-hover-bg: #f0f0f0;
+	--nav-active-bg: #e8e8e8;
+	
 	/* Spacing Scale */
 	--space-1: 4px;
 	--space-2: 8px;
@@ -104,20 +108,20 @@
 	--transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Dark Mode - Deep & Rich */
+/* Dark Mode - ChatGPT-inspired */
 [data-theme="dark"] {
-	--bg: #0a0a0a;
-	--bg-subtle: #121212;
-	--bg-muted: #1a1a1a;
+	--bg: #212121;
+	--bg-subtle: #2a2a2a;
+	--bg-muted: #343434;
 	
-	--panel: #141414;
-	--panel-border: #282828;
+	--panel: #171717;
+	--panel-border: #2a2a2a;
 	
-	--text: #f5f5f5;
-	--text-muted: #a1a1a1;
-	--text-subtle: #737373;
+	--text: #ececec;
+	--text-muted: #b4b4b4;
+	--text-subtle: #8e8e8e;
 	
-	--border: #282828;
+	--border: #2a2a2a;
 	--border-strong: #404040;
 	
 	--accent: #38bdf8;
@@ -144,6 +148,10 @@
 	--neutral: #a3a3a3;
 	--neutral-bg: #1a1a1a;
 	--neutral-text: #d4d4d4;
+	
+	/* Navigation - ChatGPT-style hover and active states */
+	--nav-hover-bg: #2a2a2a;
+	--nav-active-bg: #343434;
 	
 	/* Darker shadows for depth */
 	--shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
