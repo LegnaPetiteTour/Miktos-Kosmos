@@ -3,6 +3,7 @@
 ## Quick Start
 
 ### Prerequisites
+
 ```bash
 # Check versions
 node --version   # Should be 18+
@@ -11,6 +12,7 @@ pnpm --version   # Install with: npm install -g pnpm
 ```
 
 ### First Time Setup
+
 ```bash
 cd miktos-kosmos
 
@@ -23,7 +25,7 @@ pnpm tauri dev
 
 ## Project Structure
 
-```
+```text
 miktos-kosmos/
 ├── src/                    # Frontend (SvelteKit)
 │   ├── lib/
@@ -53,6 +55,7 @@ miktos-kosmos/
 ## Development Workflow
 
 ### Running the App
+
 ```bash
 # Development mode (hot reload)
 pnpm tauri dev
@@ -62,6 +65,7 @@ pnpm tauri build
 ```
 
 ### Code Formatting
+
 ```bash
 # Format Rust code
 cd src-tauri
@@ -75,6 +79,7 @@ pnpm format
 ```
 
 ### Testing
+
 ```bash
 # Run Rust tests
 cd src-tauri
@@ -91,6 +96,7 @@ pnpm test
 Miktos Kosmos uses Tauri's IPC (Inter-Process Communication) system:
 
 **Frontend (TypeScript)**:
+
 ```typescript
 import { invoke } from '@tauri-apps/api/core';
 
@@ -99,6 +105,7 @@ const result = await invoke('scan_directory', { path: '/some/path' });
 ```
 
 **Backend (Rust)**:
+
 ```rust
 #[tauri::command]
 async fn scan_directory(path: String) -> Result<ScanResult, String> {
@@ -109,11 +116,11 @@ async fn scan_directory(path: String) -> Result<ScanResult, String> {
 ### Data Flow
 
 1. **User Action** → UI component
-2. **UI Component** → Svelte store (state management)
-3. **Store** → Tauri command (invoke)
-4. **Rust Backend** → Process request
-5. **Response** → Update store
-6. **Store** → Update UI
+1. **UI Component** → Svelte store (state management)
+1. **Store** → Tauri command (invoke)
+1. **Rust Backend** → Process request
+1. **Response** → Update store
+1. **Store** → Update UI
 
 ### State Management
 
@@ -133,6 +140,7 @@ export const scanProgress = writable({
 ## Key Components
 
 ### Scanner (Rust)
+
 - Walks directory tree
 - Reads file metadata
 - Calculates file hashes
@@ -140,6 +148,7 @@ export const scanProgress = writable({
 - Identifies screenshots
 
 ### UI Components (Svelte)
+
 - File picker
 - Progress bar
 - Photo grid
@@ -151,6 +160,7 @@ export const scanProgress = writable({
 ### Adding a New Tauri Command
 
 1. Define the command in `src-tauri/src/commands.rs`:
+
 ```rust
 #[tauri::command]
 pub fn my_new_command(param: String) -> Result<String, String> {
@@ -158,7 +168,8 @@ pub fn my_new_command(param: String) -> Result<String, String> {
 }
 ```
 
-2. Register it in `src-tauri/src/main.rs`:
+1. Register it in `src-tauri/src/main.rs`:
+
 ```rust
 .invoke_handler(tauri::generate_handler![
     greet,
@@ -167,7 +178,8 @@ pub fn my_new_command(param: String) -> Result<String, String> {
 ])
 ```
 
-3. Call it from the frontend:
+1. Call it from the frontend:
+
 ```typescript
 const result = await invoke('my_new_command', { param: 'test' });
 ```
@@ -175,17 +187,19 @@ const result = await invoke('my_new_command', { param: 'test' });
 ### Adding a New Page
 
 1. Create `src/routes/newpage/+page.svelte`
-2. The route will automatically be `/newpage`
-3. Add navigation links in other components
+1. The route will automatically be `/newpage`
+1. Add navigation links in other components
 
 ### Adding a Dependency
 
 **Frontend**:
+
 ```bash
 pnpm add package-name
 ```
 
 **Backend**:
+
 ```bash
 cd src-tauri
 cargo add package-name
@@ -194,11 +208,13 @@ cargo add package-name
 ## Debugging
 
 ### Frontend Debugging
+
 - Open DevTools in the app (Ctrl+Shift+I / Cmd+Opt+I)
 - Check browser console for errors
 - Use Svelte DevTools extension
 
 ### Backend Debugging
+
 ```bash
 # Run with debug output
 RUST_LOG=debug pnpm tauri dev
@@ -208,6 +224,7 @@ println!("Debug: {:?}", some_variable);
 ```
 
 ### Performance Profiling
+
 ```bash
 # Rust
 cargo build --release
@@ -220,18 +237,21 @@ cargo flamegraph
 ## Build for Distribution
 
 ### macOS
+
 ```bash
 pnpm tauri build
 # Output: src-tauri/target/release/bundle/dmg/
 ```
 
 ### Windows
+
 ```bash
 pnpm tauri build
 # Output: src-tauri/target/release/bundle/msi/
 ```
 
 ### Linux
+
 ```bash
 pnpm tauri build
 # Output: src-tauri/target/release/bundle/appimage/
@@ -240,11 +260,13 @@ pnpm tauri build
 ## Troubleshooting
 
 ### "Command not found: tauri"
+
 ```bash
 pnpm install
 ```
 
 ### Build errors in Rust
+
 ```bash
 cd src-tauri
 cargo clean
@@ -252,6 +274,7 @@ cargo build
 ```
 
 ### Frontend not updating
+
 - Check if dev server is running on port 5173
 - Clear browser cache
 - Restart `pnpm tauri dev`
