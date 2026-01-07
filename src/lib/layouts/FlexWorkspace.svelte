@@ -11,6 +11,7 @@
 	
 	let scanResult: any = null;
 	let currentFolder: any = null;
+	let selectedFile: any = null;
 	
 	fileStore.subscribe(value => {
 		scanResult = value;
@@ -18,7 +19,13 @@
 	
 	currentFolderStore.subscribe(value => {
 		currentFolder = value;
+		// Clear selection when folder changes
+		selectedFile = null;
 	});
+	
+	function handleFileSelect(event: CustomEvent) {
+		selectedFile = event.detail;
+	}
 	
 	$: hasFiles = scanResult?.files?.length > 0;
 	
@@ -171,6 +178,7 @@
 				currentPath={currentFolder?.path || ''}
 				files={currentFolder?.files || []}
 				loading={currentFolder?.loading || false}
+				on:fileSelect={handleFileSelect}
 			/>
 		</FlexPanel>
 		
@@ -187,7 +195,7 @@
 	<!-- Center Column: Preview + Metadata (SWAPPED FROM RIGHT) -->
 	<div class="panel-column" style="width: {centerWidth}%;">
 		<FlexPanel title="Preview" minWidth={250} minHeight={200} defaultFlex={1.5}>
-			<PreviewPanel />
+			<PreviewPanel selectedFile={selectedFile} />
 		</FlexPanel>
 		
 		<FlexPanel title="Metadata" minWidth={250} minHeight={150} defaultFlex={1}>

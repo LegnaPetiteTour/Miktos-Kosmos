@@ -56,6 +56,7 @@ pub fn get_home_dir() -> Result<String, String> {
 #[tauri::command]
 pub fn list_directory(path: String) -> Result<Vec<serde_json::Value>, String> {
     use std::fs;
+    use std::time::SystemTime;
     
     let entries = fs::read_dir(&path)
         .map_err(|e| format!("Failed to read directory: {e}"))?;
@@ -67,13 +68,47 @@ pub fn list_directory(path: String) -> Result<Vec<serde_json::Value>, String> {
             let name = entry.file_name().to_string_lossy().to_string();
             let path = entry.path().to_string_lossy().to_string();
             
+            // Get file size
+            let size = metadata.len();
+            
+            // Get modified time (Unix timestamp in seconds)
+            let modified = metadata.modified()
+                .ok()
+                .and_then(|time| time.duration_since(SystemTime::UNIX_EPOCH).ok())
+                .map(|duration| duration.as_secs());
+            
+            // Get created time (Unix timestamp in seconds)
+            let created = metadata.created()
+                .ok()
+                .and_then(|time| time.duration_since(SystemTime::UNIX_EPOCH).ok())
+                .map(|duration| duration.as_secs());
+            
             items.push(serde_json::json!({
                 "name": name,
                 "path": path,
-                "is_dir": metadata.is_dir()
+                "is_dir": metadata.is_dir(),
+                "size": size,
+                "modified": modified,
+                "created": created
             }));
         }
     }
+    
+    // Sort: folders first, then alphabetically
+    items.sort_by(|a, b| {
+        let a_is_dir = a.get("is_dir").and_then(|v| v.as_bool()).unwrap_or(false);
+        let b_is_dir = b.get("is_dir").and_then(|v| v.as_bool()).unwrap_or(false);
+        let a_name = a.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        let b_name = b.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        
+        if a_is_dir && !b_is_dir {
+            std::cmp::Ordering::Less
+        } else if !a_is_dir && b_is_dir {
+            std::cmp::Ordering::Greater
+        } else {
+            a_name.to_lowercase().cmp(&b_name.to_lowercase())
+        }
+    });
     
     Ok(items)
 }

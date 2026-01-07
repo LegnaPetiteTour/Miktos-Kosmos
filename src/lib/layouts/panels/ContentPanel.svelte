@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { invoke } from '@tauri-apps/api/core';
+	import { convertFileSrc } from '@tauri-apps/api/core';
 	
 	export let currentPath: string = '';
 	export let files: any[] = [];
@@ -8,17 +9,78 @@
 	
 	const dispatch = createEventDispatcher();
 	
+	type SortColumn = 'name' | 'modified' | 'size' | 'type';
+	type SortDirection = 'asc' | 'desc';
+	
+	let sortColumn: SortColumn = 'name';
+	let sortDirection: SortDirection = 'asc';
+	
 	// Extract folder name from path
 	$: folderName = currentPath.split('/').filter(Boolean).pop() || 'Computer';
 	
-	// Sort files: folders first, then by name
+	// Check if file is an image
+	function isImageFile(file: any): boolean {
+		if (file.is_dir) return false;
+		const ext = file.name?.split('.').pop()?.toLowerCase() || '';
+		return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'bmp', 'svg'].includes(ext);
+	}
+	
+	// Get thumbnail URL for image files
+	function getThumbnailUrl(file: any): string | null {
+		if (!isImageFile(file)) return null;
+		const url = convertFileSrc(file.path);
+		console.log('ContentPanel - getThumbnailUrl:', {
+			fileName: file.name,
+			filePath: file.path,
+			convertedUrl: url
+		});
+		return url;
+	}
+	
+	// Sort files based on current sort column and direction
 	$: sortedFiles = [...files].sort((a, b) => {
-		// Folders first
-		if (a.is_dir && !b.is_dir) return -1;
-		if (!a.is_dir && b.is_dir) return 1;
-		// Then alphabetically
-		return a.name.localeCompare(b.name);
+		let result = 0;
+		
+		switch (sortColumn) {
+			case 'name':
+				// Folders first, then by name
+				if (a.is_dir && !b.is_dir) result = -1;
+				else if (!a.is_dir && b.is_dir) result = 1;
+				else result = a.name.localeCompare(b.name);
+				break;
+			
+			case 'modified':
+				const aTime = a.modified || a.created || 0;
+				const bTime = b.modified || b.created || 0;
+				result = aTime - bTime;
+				break;
+			
+			case 'size':
+				const aSize = a.is_dir ? 0 : (a.size || 0);
+				const bSize = b.is_dir ? 0 : (b.size || 0);
+				result = aSize - bSize;
+				break;
+			
+			case 'type':
+				const aType = getFileType(a);
+				const bType = getFileType(b);
+				result = aType.localeCompare(bType);
+				break;
+		}
+		
+		return sortDirection === 'asc' ? result : -result;
 	});
+	
+	function handleSort(column: SortColumn) {
+		if (sortColumn === column) {
+			// Toggle direction
+			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+		} else {
+			// New column, default to ascending
+			sortColumn = column;
+			sortDirection = 'asc';
+		}
+	}
 	
 	function selectFile(file: any) {
 		dispatch('fileSelect', file);
@@ -30,6 +92,14 @@
 		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
 		if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
 		return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+	}
+	
+	let imageErrors = new Set<string>();
+	
+	function handleThumbnailError(filePath: string) {
+		console.error('ContentPanel - Thumbnail failed to load:', filePath);
+		imageErrors.add(filePath);
+		imageErrors = imageErrors; // Trigger reactivity
 	}
 	
 	function formatDate(timestamp: number | string | undefined): string {
@@ -243,6 +313,29 @@
 		color: var(--text-muted);
 		border-bottom: 1px solid var(--panel-border);
 		white-space: nowrap;
+		cursor: pointer;
+		user-select: none;
+		transition: background-color var(--transition-fast);
+	}
+	
+	.content-table th:hover {
+		background-color: rgba(255, 255, 255, 0.05);
+	}
+	
+	.content-table th.sortable {
+		position: relative;
+	}
+	
+	.sort-indicator {
+		margin-left: var(--space-1);
+		font-size: 10px;
+		color: var(--text-accent);
+		display: inline-block;
+		transition: transform var(--transition-fast);
+	}
+	
+	.sort-indicator.desc {
+		transform: rotate(180deg);
 	}
 	
 	.content-table tbody tr {
@@ -274,6 +367,25 @@
 	.file-icon {
 		font-size: 14px;
 		flex-shrink: 0;
+	}
+	
+	.file-thumbnail {
+		width: 32px;
+		height: 32px;
+		flex-shrink: 0;
+		border-radius: 4px;
+		object-fit: cover;
+		background-color: var(--bg-subtle);
+	}
+	
+	.file-thumbnail-placeholder {
+		width: 32px;
+		height: 32px;
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 20px;
 	}
 	
 	.empty-state {
@@ -327,10 +439,30 @@
 				<table class="content-table">
 					<thead>
 						<tr>
-							<th style="width: 40%;">Name</th>
-							<th style="width: 25%;">Date Modified</th>
-							<th style="width: 15%;">Size</th>
-							<th style="width: 20%;">Type</th>
+							<th style="width: 40%;" class="sortable" on:click={() => handleSort('name')}>
+								Name
+								{#if sortColumn === 'name'}
+									<span class="sort-indicator" class:desc={sortDirection === 'desc'}>▲</span>
+								{/if}
+							</th>
+							<th style="width: 25%;" class="sortable" on:click={() => handleSort('modified')}>
+								Date Modified
+								{#if sortColumn === 'modified'}
+									<span class="sort-indicator" class:desc={sortDirection === 'desc'}>▲</span>
+								{/if}
+							</th>
+							<th style="width: 15%;" class="sortable" on:click={() => handleSort('size')}>
+								Size
+								{#if sortColumn === 'size'}
+									<span class="sort-indicator" class:desc={sortDirection === 'desc'}>▲</span>
+								{/if}
+							</th>
+							<th style="width: 20%;" class="sortable" on:click={() => handleSort('type')}>
+								Type
+								{#if sortColumn === 'type'}
+									<span class="sort-indicator" class:desc={sortDirection === 'desc'}>▲</span>
+								{/if}
+							</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -338,7 +470,19 @@
 							<tr on:click={() => selectFile(file)}>
 								<td>
 									<div class="file-name">
-										<span class="file-icon">{getFileIcon(file)}</span>
+										{#if getThumbnailUrl(file) && !imageErrors.has(file.path)}
+											<img 
+												src={getThumbnailUrl(file)} 
+												alt={file.name}
+												class="file-thumbnail"
+												loading="lazy"
+												on:error={() => handleThumbnailError(file.path)}
+											/>
+										{:else}
+											<div class="file-thumbnail-placeholder">
+												{getFileIcon(file)}
+											</div>
+										{/if}
 										<span>{file.name}</span>
 									</div>
 								</td>
