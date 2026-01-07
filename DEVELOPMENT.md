@@ -12,7 +12,7 @@ pnpm --version   # Install with: npm install -g pnpm
 
 ### First Time Setup
 ```bash
-cd PhotoArchive
+cd miktos-kosmos
 
 # Install dependencies
 pnpm install
@@ -24,7 +24,7 @@ pnpm tauri dev
 ## Project Structure
 
 ```
-PhotoArchive/
+miktos-kosmos/
 ├── src/                    # Frontend (SvelteKit)
 │   ├── lib/
 │   │   ├── components/    # Reusable UI components
@@ -88,7 +88,7 @@ pnpm test
 
 ### Frontend → Backend Communication
 
-PhotoArchive uses Tauri's IPC (Inter-Process Communication) system:
+Miktos Kosmos uses Tauri's IPC (Inter-Process Communication) system:
 
 **Frontend (TypeScript)**:
 ```typescript

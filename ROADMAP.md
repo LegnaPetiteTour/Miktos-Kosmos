@@ -1,4 +1,4 @@
-# PhotoArchive - Development Roadmap
+# Miktos Kosmos - Development Roadmap
 
 ## Phase 1: Foundation (Week 1) ✓
 - [x] Project setup (Tauri + SvelteKit)

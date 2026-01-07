@@ -1,6 +1,6 @@
-# Contributing to PhotoArchive
+# Contributing to Miktos Kosmos
 
-Thank you for your interest in contributing to PhotoArchive! This project aims to help people organize their family photos with privacy and simplicity in mind.
+Thank you for your interest in contributing to Miktos Kosmos! This project aims to help people organize their family photos with privacy and simplicity in mind.
 
 ## 🎯 Project Philosophy
 
@@ -20,8 +20,8 @@ Thank you for your interest in contributing to PhotoArchive! This project aims t
 ### Setup Development Environment
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/photoarchive.git
-cd photoarchive
+git clone https://github.com/YOUR_USERNAME/miktos-kosmos.git
+cd miktos-kosmos
 
 # Install dependencies
 pnpm install

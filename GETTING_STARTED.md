@@ -1,4 +1,4 @@
-# 🚀 PhotoArchive - Setup & Next Steps
+# 🚀 Miktos Kosmos - Setup & Next Steps
 
 ## ✅ What's Done
 
@@ -15,7 +15,7 @@
 
 ### Code Structure
 ```
-PhotoArchive/
+miktos-kosmos/
 ├── Frontend (SvelteKit + TypeScript + Tailwind)
 │   └── Beautiful landing page with feature highlights
 ├── Backend (Rust + Tauri)

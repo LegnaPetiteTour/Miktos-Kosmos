@@ -96,7 +96,7 @@ Then update `scanner.rs` to extract real EXIF dates.
 **Symptom:** "Failed to read directory" error
 **Fix:** Make sure you grant file access permissions
 - System Preferences > Privacy & Security > Files and Folders
-- Grant PhotoArchive access
+- Grant Miktos Kosmos access
 
 ### Issue 2: Scan Takes Forever
 **Symptom:** App freezes during scan

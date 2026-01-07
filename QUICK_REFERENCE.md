@@ -1,9 +1,9 @@
-# 🚀 PhotoArchive - Quick Reference
+# 🚀 Miktos Kosmos - Quick Reference
 
 ## ⚡ Installation (First Time)
 
 ```bash
-cd /Users/atorrella/Desktop/PhotoArchive
+cd /Users/atorrella/Desktop/Miktos\ Kosmos
 pnpm install
 pnpm tauri dev
 ```
