@@ -40,3 +40,42 @@ pub async fn execute_organization(
 ) -> Result<OperationResult, String> {
     execute_organization_plan(plan, source_files)
 }
+
+// ============================================================================
+// FOLDER NAVIGATION COMMANDS
+// ============================================================================
+
+#[tauri::command]
+pub fn get_home_dir() -> Result<String, String> {
+    use std::env;
+    env::var("HOME")
+        .or_else(|_| env::var("USERPROFILE"))
+        .map_err(|e| format!("Failed to get home directory: {e}"))
+}
+
+#[tauri::command]
+pub fn list_directory(path: String) -> Result<Vec<serde_json::Value>, String> {
+    use std::fs;
+    
+    let entries = fs::read_dir(&path)
+        .map_err(|e| format!("Failed to read directory: {e}"))?;
+    
+    let mut items = Vec::new();
+    
+    for entry in entries {
+        if let Ok(entry) = entry {
+            if let Ok(metadata) = entry.metadata() {
+                let name = entry.file_name().to_string_lossy().to_string();
+                let path = entry.path().to_string_lossy().to_string();
+                
+                items.push(serde_json::json!({
+                    "name": name,
+                    "path": path,
+                    "is_dir": metadata.is_dir()
+                }));
+            }
+        }
+    }
+    
+    Ok(items)
+}

@@ -19,7 +19,9 @@ fn main() {
             scan_directory,
             get_scan_stats,
             create_organization_plan,
-            execute_organization
+            execute_organization,
+            get_home_dir,
+            list_directory
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -30,7 +30,7 @@
 	.layout-switcher {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
+		justify-content: center;
 		gap: var(--space-2);
 		padding: var(--space-3) var(--space-5);
 		background-color: var(--panel);
@@ -142,9 +142,8 @@
 </style>
 
 <div class="layout-switcher">
-	<!-- Left: Layout switcher -->
+	<!-- Center: Layout switcher -->
 	<div class="layout-section">
-		<span class="layout-label">Layout:</span>
 		<div class="layout-buttons">
 			{#each layoutOptions as layoutId}
 				{@const layout = LAYOUTS[layoutId]}
@@ -165,38 +164,6 @@
 	
 	<!-- Right: Action buttons -->
 	<div class="actions-section">
-		<button
-			type="button"
-			class="action-button"
-			on:click={() => goto('/workspace')}
-			title="Scan folder"
-		>
-			<span class="action-icon">{icons.folder}</span>
-			<span>Scan Folder</span>
-		</button>
-		
-		<div class="divider"></div>
-		
-		<button
-			type="button"
-			class="action-button"
-			disabled={!hasFiles}
-			on:click={() => goto('/analyze')}
-			title={hasFiles ? 'Analyze files' : 'Scan files first'}
-		>
-			<span class="action-icon">{icons.search}</span>
-			<span>Analyze</span>
-		</button>
-		
-		<button
-			type="button"
-			class="action-button primary"
-			disabled={!hasFiles}
-			on:click={() => goto('/transform')}
-			title={hasFiles ? 'Create folder structure' : 'Scan files first'}
-		>
-			<span class="action-icon">{icons.transform}</span>
-			<span>Organize</span>
-		</button>
+		<!-- Empty - all actions now in Tools panel -->
 	</div>
 </div>

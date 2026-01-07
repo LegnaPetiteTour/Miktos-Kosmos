@@ -1,10 +1,17 @@
 <script lang="ts">
 	import type { NavItem } from '$lib/types';
 	import ThemeToggle from '../components/ThemeToggle.svelte';
+	import FolderTree from '../components/FolderTree.svelte';
 	
 	export let items: NavItem[];
 	export let selectedId: string;
 	export let onNavSelect: (id: string) => void;
+	
+	let foldersPanelExpanded = true;
+	
+	function toggleFoldersPanel() {
+		foldersPanelExpanded = !foldersPanelExpanded;
+	}
 </script>
 
 <style>
@@ -28,6 +35,45 @@
 		font-weight: var(--weight-bold);
 		color: var(--text);
 		letter-spacing: -0.01em;
+	}
+	
+	.folders-panel {
+		border-bottom: 1px solid var(--panel-border);
+		background-color: var(--bg-subtle);
+	}
+	
+	.folders-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--space-3) var(--space-4);
+		cursor: pointer;
+		user-select: none;
+		transition: background-color var(--transition-fast);
+	}
+	
+	.folders-header:hover {
+		background-color: var(--panel);
+	}
+	
+	.folders-title {
+		font-size: var(--text-sm);
+		font-weight: var(--weight-semibold);
+		color: var(--text);
+	}
+	
+	.folders-icon {
+		font-size: 10px;
+		color: var(--text-muted);
+		transition: transform var(--transition-fast);
+	}
+	
+	.folders-icon.expanded {
+		transform: rotate(90deg);
+	}
+	
+	.folders-content {
+		padding: var(--space-3);
 	}
 	
 	.sidebar-nav {
@@ -120,6 +166,21 @@
 		<div class="sidebar-title">Miktos Kosmos</div>
 	</div>
 	
+	<!-- Folders Panel -->
+	<div class="folders-panel">
+		<div class="folders-header" on:click={toggleFoldersPanel}>
+			<h3 class="folders-title">Folders</h3>
+			<span class="folders-icon" class:expanded={foldersPanelExpanded}>▶</span>
+		</div>
+		
+		{#if foldersPanelExpanded}
+			<div class="folders-content">
+				<FolderTree />
+			</div>
+		{/if}
+	</div>
+	
+	<!-- Navigation -->
 	<nav class="sidebar-nav">
 		{#each items as item (item.id)}
 			<button

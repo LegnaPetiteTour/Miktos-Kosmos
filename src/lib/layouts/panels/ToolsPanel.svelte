@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { fileStore } from '$lib/stores/photoStore';
+	import { historyStore } from '$lib/stores/historyStore';
+	import type { HistoryEntry } from '$lib/stores/historyStore';
 	import { invoke } from '@tauri-apps/api/core';
 	import { open } from '@tauri-apps/plugin-dialog';
 	
@@ -18,6 +20,7 @@
 		workspace: true,
 		analyze: false,
 		organize: false,
+		review: false,
 		export: false
 	};
 	
@@ -43,6 +46,31 @@
 				console.log('Scan result:', result);
 				fileStore.setScanResult(result);
 				console.log('Store updated');
+				
+				// Add to history
+				const historyEntry: HistoryEntry = {
+					id: Date.now().toString(),
+					timestamp: new Date().toISOString(),
+					folder_path: selected,
+					total_files: result.files?.length || 0,
+					total_size: result.stats?.total_size || 0,
+					date_range_start: result.stats?.date_range_start,
+					date_range_end: result.stats?.date_range_end,
+					file_types: result.stats?.file_types || {
+						images: 0,
+						videos: 0,
+						documents: 0,
+						audio: 0,
+						archives: 0,
+						other: 0
+					},
+					errors: 0,
+					warnings: 0,
+					status: 'success'
+				};
+				
+				historyStore.addEntry(historyEntry);
+				console.log('History entry added');
 			} else {
 				console.log('No folder selected');
 			}
@@ -337,14 +365,6 @@
 		
 		{#if expandedSections.analyze}
 			<div class="section-content">
-				<button 
-					class="tool-button" 
-					disabled={!hasFiles}
-					on:click={() => goto('/analyze')}
-				>
-					🔍 Run Analysis
-				</button>
-				
 				<div class="setting-group">
 					<div class="setting-label">Detection Options:</div>
 					
@@ -391,14 +411,6 @@
 		
 		{#if expandedSections.organize}
 			<div class="section-content">
-				<button 
-					class="tool-button" 
-					disabled={!hasFiles}
-					on:click={() => goto('/transform')}
-				>
-					◈ Create Structure
-				</button>
-				
 				<div class="setting-group">
 					<div class="setting-label">Organization Strategy:</div>
 					
@@ -449,6 +461,40 @@
 				{#if !hasFiles}
 					<div class="info-text">
 						Load files first to organize them.
+					</div>
+				{/if}
+			</div>
+		{/if}
+	</div>
+	
+	<!-- REVIEW SECTION -->
+	<div class="tool-section">
+		<div 
+			class="section-header"
+			class:expanded={expandedSections.review}
+			on:click={() => toggleSection('review')}
+		>
+			<h3 class="section-title">Review</h3>
+			<span class="section-icon" class:expanded={expandedSections.review}>▶</span>
+		</div>
+		
+		{#if expandedSections.review}
+			<div class="section-content">
+				<button 
+					class="tool-button" 
+					disabled={!hasFiles}
+					on:click={() => goto('/review')}
+				>
+					📋 View Audit Trail
+				</button>
+				
+				<div class="info-text">
+					Audit trail and operation history. All changes are logged and reversible.
+				</div>
+				
+				{#if !hasFiles}
+					<div class="info-text">
+						No operations yet.
 					</div>
 				{/if}
 			</div>

@@ -1,72 +1,9 @@
 <script lang="ts">
-	import { fileStore } from '$lib/stores/photoStore';
-	import { icons } from '$lib/ui/icons';
-	import { operationsStore } from '$lib/stores/operationsStore';
-	import type { OperationResult } from '$lib/types';
-	
 	import LayoutSwitcher from '$lib/layouts/LayoutSwitcher.svelte';
 	import FlexWorkspace from '$lib/layouts/FlexWorkspace.svelte';
-	import Section from '$lib/ui/layout/Section.svelte';
-	import StatCard from '$lib/ui/components/StatCard.svelte';
+	import HistoryPanel from '$lib/layouts/panels/HistoryPanel.svelte';
 	
-	let scanResult: any = null;
-	let operations: OperationResult[] = [];
-	
-	fileStore.subscribe(value => {
-		scanResult = value;
-	});
-	
-	operationsStore.subscribe(value => {
-		operations = value;
-	});
-	
-	// Derived values
-	$: totalFiles = scanResult?.files?.length || 0;
-	$: totalSize = scanResult?.stats?.total_size || 0;
-	$: fileTypes = scanResult?.stats?.file_types;
-	$: hasData = totalFiles > 0;
-	
-	// File type summary
-	$: fileTypesSummary = (() => {
-		if (!fileTypes) return 'No files';
-		const parts = [];
-		if (fileTypes.images > 0) parts.push(`${fileTypes.images} images`);
-		if (fileTypes.videos > 0) parts.push(`${fileTypes.videos} videos`);
-		if (fileTypes.documents > 0) parts.push(`${fileTypes.documents} docs`);
-		return parts.length > 0 ? parts.join(', ') : 'No files';
-	})();
-	
-	// Date range
-	$: dateRange = (() => {
-		if (!scanResult?.files?.length) return 'No data';
-		
-		const dates = scanResult.files
-			.map((f: any) => f.date_taken || f.modified_at || f.created_at)
-			.filter((d: any) => d)
-			.map((d: any) => new Date(d).getTime());
-		
-		if (!dates.length) return 'No dates';
-		
-		const min = new Date(Math.min(...dates)).getFullYear();
-		const max = new Date(Math.max(...dates)).getFullYear();
-		
-		return min === max ? `${min}` : `${min} → ${max}`;
-	})();
-	
-	// Format file size
-	function formatBytes(bytes: number): string {
-		if (bytes === 0) return '0 MB';
-		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-		if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
-		return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
-	}
-	
-	function formatDate(isoString: string): string {
-		const date = new Date(isoString);
-		return date.toLocaleString();
-	}
-	
-	// Resizable splitter for workspace/overview with LIMITS
+	// Resizable splitter for workspace/history with LIMITS
 	let workspaceHeight = 65;
 	let isDragging = false;
 	let startY = 0;
@@ -85,9 +22,9 @@
 		const windowHeight = window.innerHeight;
 		const newHeight = (e.clientY / windowHeight) * 100;
 		
-		// STRICT LIMITS: Keep overview content always visible (min 250px = ~20% at 1080p)
+		// STRICT LIMITS: Keep history content always visible
 		const minWorkspace = 45; // Min 45% for workspace
-		const maxWorkspace = 75; // Max 75% for workspace (ensures 25% for overview)
+		const maxWorkspace = 75; // Max 75% for workspace (ensures 25% for history)
 		
 		if (newHeight >= minWorkspace && newHeight <= maxWorkspace) {
 			workspaceHeight = newHeight;
@@ -155,26 +92,15 @@
 		opacity: 0.5;
 	}
 	
-	.info-section {
+	.history-section {
 		flex: 1;
-		overflow-y: auto;
-		padding: var(--space-5);
-		background-color: var(--bg-subtle);
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-5);
+		overflow: hidden;
 		min-height: 200px;
-	}
-	
-	.stats-grid {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: var(--space-4);
 	}
 </style>
 
 <div class="home-page">
-	<!-- Top: Layout Switcher + Action Buttons -->
+	<!-- Top: Layout Switcher -->
 	<LayoutSwitcher />
 	
 	<!-- Middle: Flex Workspace (Resizable with LIMITS) -->
@@ -191,69 +117,8 @@
 		aria-orientation="horizontal"
 	></div>
 	
-	<!-- Bottom: Overview + Activity (ALWAYS VISIBLE min 25%) -->
-	<div class="info-section">
-		<!-- Overview Stats -->
-		<div class="stats-grid">
-			<StatCard
-				label="Total Files"
-				value={totalFiles}
-				meta={fileTypesSummary}
-				icon={icons.files}
-			/>
-			<StatCard
-				label="Total Size"
-				value={formatBytes(totalSize)}
-				meta={hasData ? `Across ${totalFiles} files` : 'No data yet'}
-				icon={icons.storage}
-			/>
-			<StatCard
-				label="Date Range"
-				value={dateRange}
-				meta={hasData ? 'From file metadata' : 'Scan to discover'}
-				icon={icons.calendar}
-			/>
-			<StatCard
-				label="Status"
-				value={hasData ? 'Ready' : 'No data'}
-				meta={hasData ? `${totalFiles} files loaded` : 'No workspace loaded'}
-				icon={icons.diamond}
-			/>
-		</div>
-		
-		<!-- Recent Activity -->
-		<Section title="Recent Activity">
-			{#if operations.length === 0}
-				<div style="padding: var(--space-5); text-align: center; color: var(--text-muted);">
-					{#if hasData}
-						<p>No operations yet. Use "Organize" button to organize files.</p>
-					{:else}
-						<p>No recent activity</p>
-					{/if}
-				</div>
-			{:else}
-				<div style="display: flex; flex-direction: column; gap: var(--space-3);">
-					{#each operations.slice(0, 3) as operation, index}
-						<div style="padding: var(--space-3); background-color: var(--panel); border-radius: var(--radius-md); border-left: 3px solid {operation.success ? 'var(--success)' : 'var(--danger)'};">
-							<div style="display: flex; justify-content: space-between; align-items: start;">
-								<div>
-									<div style="font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--text);">
-										{operation.success ? '✓' : '⚠'} Operation #{operations.length - index}
-									</div>
-									<div style="font-size: var(--text-xs); color: var(--text-muted);">
-										{formatDate(operation.timestamp)}
-									</div>
-								</div>
-								<div style="display: flex; gap: var(--space-2); font-size: var(--text-xs);">
-									<span style="color: var(--success);">✓ {operation.successful_count}</span>
-									<span style="color: var(--danger);">✕ {operation.failed_count}</span>
-									<span style="color: var(--text-muted);">{(operation.duration_ms / 1000).toFixed(2)}s</span>
-								</div>
-							</div>
-						</div>
-					{/each}
-				</div>
-			{/if}
-		</Section>
+	<!-- Bottom: History Panel (ALWAYS VISIBLE min 25%) -->
+	<div class="history-section">
+		<HistoryPanel />
 	</div>
 </div>
