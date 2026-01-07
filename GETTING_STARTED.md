@@ -3,6 +3,7 @@
 ## ✅ What's Done
 
 ### Project Foundation
+
 - ✓ Tauri 2.0 + SvelteKit project structure
 - ✓ Rust backend with scanner module
 - ✓ Beautiful landing page UI
@@ -14,7 +15,8 @@
 - ✓ Proper .gitignore
 
 ### Code Structure
-```
+
+```text
 miktos-kosmos/
 ├── Frontend (SvelteKit + TypeScript + Tailwind)
 │   └── Beautiful landing page with feature highlights
@@ -79,18 +81,21 @@ pnpm tauri dev
 ## 🎯 Next Steps (Week 1 Tasks)
 
 ### Day 1-2: Get It Running
+
 1. Run `pnpm install` to install dependencies
 2. Run `pnpm tauri dev` to start the app
 3. Verify the landing page loads correctly
 4. Test the file scanner with your DCIM folder
 
 ### Day 3-4: EXIF Integration
+
 - [ ] Add `kamadak-exif` or `rexiv2` Rust crate
 - [ ] Extract actual date_taken from EXIF data
 - [ ] Extract camera make/model
 - [ ] Handle photos without EXIF gracefully
 
 ### Day 5-7: UI Development
+
 - [ ] Create directory picker component
 - [ ] Add scan progress UI with real-time updates
 - [ ] Build photo grid view
@@ -120,27 +125,31 @@ cd src-tauri && cargo test
 
 ## 🐛 Troubleshooting
 
-### If `pnpm tauri dev` fails:
+### If `pnpm tauri dev` fails
 
-**Error: "command not found: tauri"**
+### Error: "command not found: tauri"
+
 ```bash
 pnpm install
 ```
 
-**Error: Rust compilation errors**
+### Error: Rust compilation errors
+
 ```bash
 cd src-tauri
 cargo clean
 cargo build
 ```
 
-**Error: Port 5173 already in use**
+### Error: Port 5173 already in use
+
 ```bash
 # Kill the process using port 5173
 lsof -ti:5173 | xargs kill -9
 ```
 
-**Error: Permission denied**
+### Error: Permission denied
+
 ```bash
 # On macOS, you may need to grant permissions
 # System Preferences > Privacy & Security > Files and Folders
@@ -149,16 +158,19 @@ lsof -ti:5173 | xargs kill -9
 ## 📝 Important Files to Modify
 
 ### For UI Changes
+
 - `src/routes/+page.svelte` - Main landing page
 - `src/app.css` - Global styles
 - `src/lib/components/` - Reusable components (create as needed)
 
 ### For Backend Logic
+
 - `src-tauri/src/scanner.rs` - File scanning logic
 - `src-tauri/src/commands.rs` - Tauri commands (RPC endpoints)
 - `src-tauri/src/types.rs` - Data structures
 
 ### For Configuration
+
 - `package.json` - Frontend dependencies
 - `src-tauri/Cargo.toml` - Rust dependencies
 - `src-tauri/tauri.conf.json` - App configuration
@@ -176,22 +188,26 @@ Keep these in mind as you build:
 ## 📚 Learning Resources
 
 ### Tauri
+
 - [Official Docs](https://tauri.app/)
 - [API Reference](https://tauri.app/reference/)
 - [Examples](https://github.com/tauri-apps/tauri/tree/dev/examples)
 
 ### SvelteKit
+
 - [Tutorial](https://learn.svelte.dev/)
 - [Docs](https://kit.svelte.dev/)
 - [Examples](https://kit.svelte.dev/docs/examples)
 
 ### Rust
+
 - [The Rust Book](https://doc.rust-lang.org/book/)
 - [Rust by Example](https://doc.rust-lang.org/rust-by-example/)
 
 ## 🎯 Week 1 Goals
 
 By end of Week 1, you should have:
+
 - [ ] App running successfully
 - [ ] Can scan DCIM directory
 - [ ] Displays file counts and basic stats
@@ -201,14 +217,14 @@ By end of Week 1, you should have:
 
 ## 🚦 Success Criteria
 
-**Minimum Viable Week 1:**
+### Minimum Viable Week 1:
 1. App launches without errors
 2. Can select and scan a directory
 3. Shows accurate file counts
 4. Displays scan progress in real-time
 5. Lists found photos with basic metadata
 
-**Stretch Goals:**
+### Stretch Goals:
 1. Photo thumbnails in grid view
 2. Filter by screenshots/non-screenshots
 3. Sort by date
