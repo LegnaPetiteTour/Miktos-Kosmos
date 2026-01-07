@@ -66,7 +66,7 @@ cd src-tauri && cargo test && cd ..
 
 ## 🆘 Troubleshooting
 
-#### Error: "command not found: tauri"
+### Error: "command not found: tauri"
 
 ```bash
 pnpm install
@@ -102,4 +102,4 @@ lsof -ti:5173 | xargs kill -9
 
 ---
 
-#### Keep this file open while developing!
+### Keep this file open while developing
