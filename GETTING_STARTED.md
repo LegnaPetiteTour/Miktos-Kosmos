@@ -38,18 +38,23 @@ miktos-kosmos/
 ### 1. Install Prerequisites
 
 ```bash
+
 # Install Rust (if not already installed)
+
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Install Node.js 18+ (via nvm recommended)
+
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 nvm install 18
 nvm use 18
 
 # Install pnpm
+
 npm install -g pnpm
 
 # Verify installations
+
 rustc --version  # Should be 1.70+
 node --version   # Should be 18+
 pnpm --version
@@ -61,21 +66,29 @@ pnpm --version
 cd /Users/atorrella/Desktop/PhotoArchive
 
 # Install frontend dependencies
+
 pnpm install
 
 # This will also trigger Rust dependencies to be resolved
+
 ```
 
 ### 3. Run the App
 
 ```bash
+
 # Development mode (with hot reload)
+
 pnpm tauri dev
 
-# This will:
+# This will
+
 # 1. Compile Rust backend
+
 # 2. Start SvelteKit dev server
+
 # 3. Open the app window
+
 ```
 
 ## 🎯 Next Steps (Week 1 Tasks)
@@ -105,21 +118,27 @@ pnpm tauri dev
 ## 🛠️ Development Commands
 
 ```bash
+
 # Run in dev mode (hot reload)
+
 pnpm tauri dev
 
 # Build for production
+
 pnpm tauri build
 
 # Format code
+
 cd src-tauri && cargo fmt
 pnpm format
 
 # Check for issues
+
 cd src-tauri && cargo clippy
 pnpm check
 
 # Run tests
+
 cd src-tauri && cargo test
 ```
 
@@ -144,15 +163,20 @@ cargo build
 ### Error: Port 5173 already in use
 
 ```bash
+
 # Kill the process using port 5173
+
 lsof -ti:5173 | xargs kill -9
 ```
 
 ### Error: Permission denied
 
 ```bash
+
 # On macOS, you may need to grant permissions
+
 # System Preferences > Privacy & Security > Files and Folders
+
 ```
 
 ## 📝 Important Files to Modify
@@ -217,14 +241,16 @@ By end of Week 1, you should have:
 
 ## 🚦 Success Criteria
 
-### Minimum Viable Week 1:
+### Minimum Viable Week 1
+
 1. App launches without errors
 2. Can select and scan a directory
 3. Shows accurate file counts
 4. Displays scan progress in real-time
 5. Lists found photos with basic metadata
 
-### Stretch Goals:
+### Stretch Goals
+
 1. Photo thumbnails in grid view
 2. Filter by screenshots/non-screenshots
 3. Sort by date
