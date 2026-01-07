@@ -62,18 +62,16 @@ pub fn list_directory(path: String) -> Result<Vec<serde_json::Value>, String> {
     
     let mut items = Vec::new();
     
-    for entry in entries {
-        if let Ok(entry) = entry {
-            if let Ok(metadata) = entry.metadata() {
-                let name = entry.file_name().to_string_lossy().to_string();
-                let path = entry.path().to_string_lossy().to_string();
-                
-                items.push(serde_json::json!({
-                    "name": name,
-                    "path": path,
-                    "is_dir": metadata.is_dir()
-                }));
-            }
+    for entry in entries.flatten() {
+        if let Ok(metadata) = entry.metadata() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            let path = entry.path().to_string_lossy().to_string();
+            
+            items.push(serde_json::json!({
+                "name": name,
+                "path": path,
+                "is_dir": metadata.is_dir()
+            }));
         }
     }
     

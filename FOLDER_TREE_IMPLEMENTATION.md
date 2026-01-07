@@ -20,6 +20,7 @@ A collapsible folder tree panel has been added to the sidebar, positioned above 
 ## 🎯 Features
 
 ### Folder Tree Panel
+
 - **Position:** Top of sidebar, above navigation
 - **Collapsible:** Click "Folders" header to expand/collapse
 - **System Folders:** Shows common folders with emojis:
@@ -33,6 +34,7 @@ A collapsible folder tree panel has been added to the sidebar, positioned above 
   - 💾 Downloads
 
 ### Navigation
+
 - **Arrow icons:** ▶ (collapsed) → rotates 90° when expanded
 - **Folder icons:** 📁 for folders, 📄 for files
 - **Hover effects:** Glassmorphism on hover
@@ -81,6 +83,7 @@ fn list_directory(path: String) -> Result<Vec<serde_json::Value>, String> {
 ```
 
 **Add to invoke_handler:**
+
 ```rust
 .invoke_handler(tauri::generate_handler![
     // ... existing commands ...
@@ -91,7 +94,7 @@ fn list_directory(path: String) -> Result<Vec<serde_json::Value>, String> {
 
 ## 🎨 Visual Layout
 
-```
+```text
 ┌────────────────────┐
 │  Miktos Kosmos     │
 ├────────────────────┤
@@ -117,6 +120,7 @@ fn list_directory(path: String) -> Result<Vec<serde_json::Value>, String> {
 ## 🚀 Next Steps
 
 Once you add the Rust commands and restart the app, the folder tree will work! Users can:
+
 1. Click folder names to expand/collapse
 2. Navigate through entire file system
 3. See all drives and external drives
