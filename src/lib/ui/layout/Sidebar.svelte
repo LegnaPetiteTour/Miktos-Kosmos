@@ -1,16 +1,29 @@
 <script lang="ts">
-	import type { NavItem } from '$lib/types';
 	import ThemeToggle from '../components/ThemeToggle.svelte';
 	import FolderTree from '../components/FolderTree.svelte';
+	import { folderAccessStore } from '$lib/stores/folderAccessStore';
+	import type { FolderAccess } from '$lib/stores/folderAccessStore';
 	
-	export let items: NavItem[];
-	export let selectedId: string;
-	export let onNavSelect: (id: string) => void;
+	let activeTab: 'folders' | 'favorites' = 'folders';
+	let favorites: FolderAccess[] = [];
 	
-	let foldersPanelExpanded = true;
+	// Subscribe to folder access store
+	folderAccessStore.subscribe(value => {
+		// Get folders accessed 2+ times
+		favorites = value
+			.filter(f => f.count >= 2)
+			.sort((a, b) => b.count - a.count);
+	});
 	
-	function toggleFoldersPanel() {
-		foldersPanelExpanded = !foldersPanelExpanded;
+	function switchTab(tab: 'folders' | 'favorites') {
+		activeTab = tab;
+	}
+	
+	function selectFavorite(favorite: FolderAccess) {
+		// Track this access too
+		folderAccessStore.trackAccess(favorite.path, favorite.name);
+		console.log('Selected favorite:', favorite.path);
+		// TODO: Integrate with scan functionality
 	}
 </script>
 
@@ -28,6 +41,7 @@
 	.sidebar-brand {
 		padding: var(--space-5);
 		border-bottom: 1px solid var(--panel-border);
+		flex-shrink: 0;
 	}
 	
 	.sidebar-title {
@@ -37,127 +51,110 @@
 		letter-spacing: -0.01em;
 	}
 	
-	.folders-panel {
+	.tabs-header {
+		display: flex;
 		border-bottom: 1px solid var(--panel-border);
+		flex-shrink: 0;
 		background-color: var(--bg-subtle);
 	}
 	
-	.folders-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: var(--space-3) var(--space-4);
-		cursor: pointer;
-		user-select: none;
-		transition: background-color var(--transition-fast);
-	}
-	
-	.folders-header:hover {
-		background-color: var(--panel);
-	}
-	
-	.folders-title {
-		font-size: var(--text-sm);
-		font-weight: var(--weight-semibold);
-		color: var(--text);
-	}
-	
-	.folders-icon {
-		font-size: 10px;
-		color: var(--text-muted);
-		transition: transform var(--transition-fast);
-	}
-	
-	.folders-icon.expanded {
-		transform: rotate(90deg);
-	}
-	
-	.folders-content {
-		padding: var(--space-3);
-	}
-	
-	.sidebar-nav {
+	.tab-button {
 		flex: 1;
-		padding: var(--space-4);
-		overflow-y: auto;
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-1);
-	}
-	
-	.nav-item {
-		display: flex;
-		align-items: center;
-		gap: var(--space-3);
-		width: 100%;
 		padding: var(--space-3);
 		border: none;
 		background: none;
 		color: var(--text-muted);
-		font-size: var(--text-base);
-		font-weight: var(--weight-medium);
+		font-size: var(--text-sm);
+		font-weight: var(--weight-semibold);
 		cursor: pointer;
-		border-radius: 6px;
-		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-		text-align: left;
-		position: relative;
-		overflow: hidden;
+		transition: all var(--transition-fast);
+		border-bottom: 2px solid transparent;
 	}
 	
-	.nav-item::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(
-			135deg,
-			rgba(255, 255, 255, 0.1) 0%,
-			rgba(255, 255, 255, 0.05) 100%
-		);
-		opacity: 0;
-		transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-		border-radius: 6px;
-	}
-	
-	.nav-item:hover:not(.active) {
-		background-color: var(--nav-hover-bg);
+	.tab-button:hover:not(.active) {
 		color: var(--text);
+		background-color: var(--panel);
+	}
+	
+	.tab-button.active {
+		color: var(--text);
+		background-color: var(--panel);
+		border-bottom-color: var(--accent);
+	}
+	
+	.tab-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		background-color: var(--bg-subtle);
+	}
+	
+	.content-scroll {
+		flex: 1;
+		overflow-y: auto;
+		overflow-x: hidden;
+		padding: var(--space-3);
+	}
+	
+	.favorites-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+	}
+	
+	.favorite-item {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: var(--space-2) var(--space-3);
+		cursor: pointer;
+		user-select: none;
+		transition: background-color var(--transition-fast);
+		font-size: var(--text-xs);
+		color: var(--text);
+		border-radius: var(--radius-sm);
+		margin: 1px 0;
+	}
+	
+	.favorite-item:hover {
+		background: rgba(255, 255, 255, 0.05);
 		backdrop-filter: blur(10px);
 		-webkit-backdrop-filter: blur(10px);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05),
-		            0 1px 3px rgba(0, 0, 0, 0.08),
-		            inset 0 1px 1px rgba(255, 255, 255, 0.1);
-		transform: translateY(-1px);
 	}
 	
-	.nav-item:hover:not(.active)::before {
-		opacity: 1;
-	}
-	
-	.nav-item.active {
-		background-color: var(--nav-active-bg);
-		color: var(--text);
-		font-weight: var(--weight-semibold);
-	}
-	
-	.nav-label {
-		flex: 1;
-	}
-	
-	.nav-badge {
-		background-color: var(--danger);
-		color: white;
-		font-size: var(--text-xs);
-		font-weight: var(--weight-semibold);
-		padding: 3px 7px;
-		border-radius: 12px;
-		min-width: 20px;
+	.favorite-icon {
+		font-size: 14px;
+		flex-shrink: 0;
+		width: 16px;
 		text-align: center;
+	}
+	
+	.favorite-name {
+		flex: 1;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	
+	.favorite-count {
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		flex-shrink: 0;
+	}
+	
+	.empty-state {
+		padding: var(--space-5);
+		text-align: center;
+		color: var(--text-muted);
+		font-size: var(--text-sm);
+		line-height: 1.6;
 	}
 	
 	.sidebar-footer {
 		padding: var(--space-3);
 		border-top: 1px solid var(--panel-border);
+		flex-shrink: 0;
 	}
 </style>
 
@@ -166,36 +163,51 @@
 		<div class="sidebar-title">Miktos Kosmos</div>
 	</div>
 	
-	<!-- Folders Panel -->
-	<div class="folders-panel">
-		<div class="folders-header" on:click={toggleFoldersPanel}>
-			<h3 class="folders-title">Folders</h3>
-			<span class="folders-icon" class:expanded={foldersPanelExpanded}>▶</span>
-		</div>
-		
-		{#if foldersPanelExpanded}
-			<div class="folders-content">
-				<FolderTree />
-			</div>
-		{/if}
+	<!-- Tabs Header -->
+	<div class="tabs-header">
+		<button
+			type="button"
+			class="tab-button"
+			class:active={activeTab === 'folders'}
+			on:click={() => switchTab('folders')}
+		>
+			Folders
+		</button>
+		<button
+			type="button"
+			class="tab-button"
+			class:active={activeTab === 'favorites'}
+			on:click={() => switchTab('favorites')}
+		>
+			Favorites
+		</button>
 	</div>
 	
-	<!-- Navigation -->
-	<nav class="sidebar-nav">
-		{#each items as item (item.id)}
-			<button
-				type="button"
-				class="nav-item"
-				class:active={item.id === selectedId}
-				on:click={() => onNavSelect(item.id)}
-			>
-				<span class="nav-label">{item.label}</span>
-				{#if item.badgeCount && item.badgeCount > 0}
-					<span class="nav-badge">{item.badgeCount}</span>
+	<!-- Tab Content -->
+	<div class="tab-content">
+		<div class="content-scroll">
+			{#if activeTab === 'folders'}
+				<FolderTree />
+			{:else}
+				{#if favorites.length === 0}
+					<div class="empty-state">
+						No favorites yet.<br/>
+						Access folders 2+ times to add them here automatically.
+					</div>
+				{:else}
+					<div class="favorites-list">
+						{#each favorites as favorite}
+							<div class="favorite-item" on:click={() => selectFavorite(favorite)}>
+								<span class="favorite-icon">📁</span>
+								<span class="favorite-name">{favorite.name}</span>
+								<span class="favorite-count">×{favorite.count}</span>
+							</div>
+						{/each}
+					</div>
 				{/if}
-			</button>
-		{/each}
-	</nav>
+			{/if}
+		</div>
+	</div>
 	
 	<div class="sidebar-footer">
 		<ThemeToggle />

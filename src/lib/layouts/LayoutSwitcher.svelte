@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { layoutStore } from '$lib/layouts/store';
 	import type { LayoutId, LayoutConfig } from '$lib/layouts/types';
 	import { LAYOUTS } from '$lib/layouts/types';
@@ -24,6 +25,16 @@
 	}
 	
 	const layoutOptions: LayoutId[] = ['essentials', 'transform', 'review', 'analyze'];
+	
+	// Navigation items
+	const navItems = [
+		{ id: 'home', label: 'Home', route: '/' },
+		{ id: 'learn', label: 'Learn', route: '/learn' },
+		{ id: 'settings', label: 'Settings', route: '/settings' },
+		{ id: 'about', label: 'About', route: '/about' }
+	];
+	
+	$: currentPath = $page.url.pathname;
 </script>
 
 <style>
@@ -31,7 +42,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: var(--space-2);
+		gap: var(--space-4);
 		padding: var(--space-3) var(--space-5);
 		background-color: var(--panel);
 		border-bottom: 1px solid var(--panel-border);
@@ -42,12 +53,6 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-	}
-	
-	.layout-label {
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-		margin-right: var(--space-2);
 	}
 	
 	.layout-buttons {
@@ -89,17 +94,24 @@
 		font-size: 16px;
 	}
 	
-	.actions-section {
+	.divider {
+		width: 1px;
+		height: 24px;
+		background-color: var(--panel-border);
+		margin: 0 var(--space-2);
+	}
+	
+	.nav-section {
 		display: flex;
 		align-items: center;
 		gap: var(--space-1);
 	}
 	
-	.action-button {
+	.nav-button {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		padding: var(--space-2) var(--space-3);
+		padding: var(--space-2) var(--space-4);
 		border: none;
 		background: none;
 		color: var(--text-muted);
@@ -110,39 +122,19 @@
 		transition: all var(--transition-fast);
 	}
 	
-	.action-button:hover:not(:disabled) {
+	.nav-button:hover:not(.active) {
 		background-color: var(--bg-subtle);
 		color: var(--text);
 	}
 	
-	.action-button:disabled {
-		opacity: 0.4;
-		cursor: not-allowed;
-	}
-	
-	.action-button.primary {
-		background-color: var(--accent);
-		color: var(--accent-contrast);
-	}
-	
-	.action-button.primary:hover:not(:disabled) {
-		background-color: var(--accent-hover);
-	}
-	
-	.action-icon {
-		font-size: 16px;
-	}
-	
-	.divider {
-		width: 1px;
-		height: 24px;
-		background-color: var(--panel-border);
-		margin: 0 var(--space-2);
+	.nav-button.active {
+		background-color: var(--nav-active-bg);
+		color: var(--text);
 	}
 </style>
 
 <div class="layout-switcher">
-	<!-- Center: Layout switcher -->
+	<!-- Layout Buttons -->
 	<div class="layout-section">
 		<div class="layout-buttons">
 			{#each layoutOptions as layoutId}
@@ -162,8 +154,20 @@
 		</div>
 	</div>
 	
-	<!-- Right: Action buttons -->
-	<div class="actions-section">
-		<!-- Empty - all actions now in Tools panel -->
+	<!-- Divider -->
+	<div class="divider"></div>
+	
+	<!-- Navigation Tabs -->
+	<div class="nav-section">
+		{#each navItems as item}
+			<button
+				type="button"
+				class="nav-button"
+				class:active={currentPath === item.route}
+				on:click={() => goto(item.route)}
+			>
+				<span>{item.label}</span>
+			</button>
+		{/each}
 	</div>
 </div>

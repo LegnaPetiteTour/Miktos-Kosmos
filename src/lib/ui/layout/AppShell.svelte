@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { NavItem, StatusBadge } from '$lib/types';
 	import Sidebar from './Sidebar.svelte';
+	import LayoutSwitcher from '$lib/layouts/LayoutSwitcher.svelte';
 	
 	export let navItems: NavItem[];
 	export let selectedNavId: string;
@@ -33,12 +34,12 @@
 </style>
 
 <div class="app-shell">
-	<Sidebar 
-		items={navItems} 
-		selectedId={selectedNavId} 
-		{onNavSelect} 
-	/>
+	<Sidebar />
 	<div class="app-main">
+		<!-- Top Bar - Always visible -->
+		<LayoutSwitcher />
+		
+		<!-- Main Content -->
 		<main class="app-content">
 			<slot />
 		</main>

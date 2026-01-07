@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/core';
 	import { onMount } from 'svelte';
+	import { folderAccessStore } from '$lib/stores/folderAccessStore';
+	import { currentFolderStore } from '$lib/stores/currentFolderStore';
+	import type { FolderAccess } from '$lib/stores/folderAccessStore';
 	
 	interface FolderItem {
 		name: string;
@@ -37,6 +40,22 @@
 	async function toggleFolder(folder: FolderItem) {
 		if (!folder.is_dir) return;
 		
+		// Always track and load contents when clicking a folder
+		folderAccessStore.trackAccess(folder.path, folder.name);
+		
+		// Set as current folder and load its contents IMMEDIATELY
+		currentFolderStore.setFolder(folder.path, folder.name);
+		console.log('Loading folder:', folder.path);
+		try {
+			const files = await invoke('list_directory', { path: folder.path }) as any[];
+			console.log('Received files:', files.length, files);
+			currentFolderStore.setFiles(files);
+		} catch (error) {
+			console.error('Failed to load folder contents:', error);
+			currentFolderStore.setFiles([]);
+		}
+		
+		// Toggle expansion
 		folder.expanded = !folder.expanded;
 		
 		if (folder.expanded && !folder.children) {
@@ -62,6 +81,9 @@
 	}
 	
 	function selectFolder(folder: FolderItem) {
+		// Track folder access
+		folderAccessStore.trackAccess(folder.path, folder.name);
+		
 		// Emit event or call parent function
 		console.log('Selected folder:', folder.path);
 		// TODO: Integrate with scan functionality
@@ -73,9 +95,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0;
-		overflow-y: auto;
-		max-height: 300px;
-		min-height: 200px;
+		height: 100%;
 	}
 	
 	.folder-item {

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import FlexPanel from '$lib/components/panels/FlexPanel.svelte';
 	import { fileStore } from '$lib/stores/photoStore';
+	import { currentFolderStore } from '$lib/stores/currentFolderStore';
+	import ContentPanel from '$lib/layouts/panels/ContentPanel.svelte';
 	import FileBrowser from '$lib/layouts/panels/FileBrowser.svelte';
 	import PreviewPanel from '$lib/layouts/panels/PreviewPanel.svelte';
 	import MetadataPanel from '$lib/layouts/panels/MetadataPanel.svelte';
@@ -8,9 +10,14 @@
 	import { onMount } from 'svelte';
 	
 	let scanResult: any = null;
+	let currentFolder: any = null;
 	
 	fileStore.subscribe(value => {
 		scanResult = value;
+	});
+	
+	currentFolderStore.subscribe(value => {
+		currentFolder = value;
 	});
 	
 	$: hasFiles = scanResult?.files?.length > 0;
@@ -157,10 +164,14 @@
 </style>
 
 <div class="flex-workspace" bind:this={workspaceElement}>
-	<!-- Left Column: Files -->
+	<!-- Left Column: Content (Browse folders) -->
 	<div class="panel-column" style="width: {leftWidth}%;">
-		<FlexPanel title="Files" minWidth={300} defaultFlex={1}>
-			<FileBrowser />
+		<FlexPanel title="Content" minWidth={300} defaultFlex={1}>
+			<ContentPanel 
+				currentPath={currentFolder?.path || ''}
+				files={currentFolder?.files || []}
+				loading={currentFolder?.loading || false}
+			/>
 		</FlexPanel>
 		
 		<div 

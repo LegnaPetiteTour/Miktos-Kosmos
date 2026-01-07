@@ -1,5 +1,4 @@
 <script lang="ts">
-	import LayoutSwitcher from '$lib/layouts/LayoutSwitcher.svelte';
 	import FlexWorkspace from '$lib/layouts/FlexWorkspace.svelte';
 	import HistoryPanel from '$lib/layouts/panels/HistoryPanel.svelte';
 	
@@ -100,9 +99,6 @@
 </style>
 
 <div class="home-page">
-	<!-- Top: Layout Switcher -->
-	<LayoutSwitcher />
-	
 	<!-- Middle: Flex Workspace (Resizable with LIMITS) -->
 	<div class="workspace-section" style="height: {workspaceHeight}%">
 		<FlexWorkspace />
