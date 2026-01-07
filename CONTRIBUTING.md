@@ -13,11 +13,13 @@ Thank you for your interest in contributing to Miktos Kosmos! This project aims 
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ and pnpm
 - Rust 1.70+
 - Git
 
 ### Setup Development Environment
+
 ```bash
 # Clone your fork
 git clone https://github.com/YOUR_USERNAME/miktos-kosmos.git
@@ -33,18 +35,21 @@ pnpm tauri dev
 ## 📋 How to Contribute
 
 ### Reporting Bugs
+
 - Use the GitHub issue tracker
-- Include OS version, PhotoArchive version, and steps to reproduce
+- Include OS version, Miktos Kosmos version, and steps to reproduce
 - Add screenshots if relevant
 - Check if the issue already exists
 
 ### Suggesting Features
+
 - Open a discussion first for major features
 - Explain the problem you're trying to solve
 - Consider if it fits the project philosophy
 - Provide use cases
 
 ### Submitting Code
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
@@ -56,12 +61,14 @@ pnpm tauri dev
 ## 🏗️ Architecture Overview
 
 ### Frontend (SvelteKit)
+
 - `/src/routes` - Pages and routing
 - `/src/lib/components` - Reusable components
 - `/src/lib/stores` - State management
 - `/src/lib/utils` - Helper functions
 
 ### Backend (Rust)
+
 - `/src-tauri/src/main.rs` - Entry point
 - `/src-tauri/src/scanner.rs` - File scanning
 - `/src-tauri/src/exif.rs` - EXIF extraction
@@ -71,18 +78,21 @@ pnpm tauri dev
 ## ✅ Code Standards
 
 ### Rust
+
 - Run `cargo fmt` before committing
 - Run `cargo clippy` and fix warnings
 - Add tests for new functionality
 - Document public APIs
 
 ### TypeScript/Svelte
+
 - Use TypeScript for type safety
 - Follow existing code style
 - Keep components small and focused
 - Add comments for complex logic
 
 ### Git Commits
+
 - Use present tense ("Add feature" not "Added feature")
 - First line: short summary (50 chars max)
 - Blank line, then detailed explanation if needed
@@ -109,6 +119,7 @@ pnpm test
 ## 🐛 Debugging
 
 ### Enable Debug Logs
+
 ```bash
 # Rust backend
 RUST_LOG=debug pnpm tauri dev
@@ -118,6 +129,7 @@ RUST_LOG=debug pnpm tauri dev
 ```
 
 ### Common Issues
+
 - **Build fails**: Try `rm -rf node_modules && pnpm install`
 - **Tauri errors**: Check Rust version with `rustc --version`
 - **Permission issues**: Verify folder permissions
@@ -166,10 +178,11 @@ By contributing, you agree that your contributions will be licensed under the MI
 ## 🙏 Recognition
 
 Contributors will be added to:
+
 - README.md acknowledgments
 - GitHub contributors page
 - Release notes for significant contributions
 
 ---
 
-**Thank you for making PhotoArchive better for everyone!** 🎉
+**Thank you for making Miktos Kosmos better for everyone!** 🎉
