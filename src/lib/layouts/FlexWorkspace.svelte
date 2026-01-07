@@ -5,7 +5,6 @@
 	import ContentPanel from '$lib/layouts/panels/ContentPanel.svelte';
 	import FileBrowser from '$lib/layouts/panels/FileBrowser.svelte';
 	import PreviewPanel from '$lib/layouts/panels/PreviewPanel.svelte';
-	import MetadataPanel from '$lib/layouts/panels/MetadataPanel.svelte';
 	import ToolsPanel from '$lib/layouts/panels/ToolsPanel.svelte';
 	import { onMount } from 'svelte';
 	
@@ -192,14 +191,10 @@
 		></div>
 	</div>
 	
-	<!-- Center Column: Preview + Metadata (SWAPPED FROM RIGHT) -->
+	<!-- Center Column: Preview Only (Full Height) -->
 	<div class="panel-column" style="width: {centerWidth}%;">
-		<FlexPanel title="Preview" minWidth={250} minHeight={200} defaultFlex={1.5}>
+		<FlexPanel title="Preview" minWidth={250} minHeight={200} defaultFlex={1}>
 			<PreviewPanel selectedFile={selectedFile} />
-		</FlexPanel>
-		
-		<FlexPanel title="Metadata" minWidth={250} minHeight={150} defaultFlex={1}>
-			<MetadataPanel />
 		</FlexPanel>
 		
 		{#if hasFiles}

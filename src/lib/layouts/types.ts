@@ -41,8 +41,7 @@ export const LAYOUTS: Record<LayoutId, LayoutConfig> = {
 				{ id: 'files', visible: true, width: 50 }
 			],
 			right: [
-				{ id: 'preview', visible: true, width: 30, minWidth: 200 },
-				{ id: 'metadata', visible: true, height: 40 }
+				{ id: 'preview', visible: true, width: 30, minWidth: 200 }
 			]
 		}
 	},

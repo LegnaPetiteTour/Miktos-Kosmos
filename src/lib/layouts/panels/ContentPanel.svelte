@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import { invoke } from '@tauri-apps/api/core';
 	import { convertFileSrc } from '@tauri-apps/api/core';
+	import { currentFolderStore } from '$lib/stores/currentFolderStore';
 	
 	export let currentPath: string = '';
 	export let files: any[] = [];
@@ -9,14 +11,34 @@
 	
 	const dispatch = createEventDispatcher();
 	
-	type SortColumn = 'name' | 'modified' | 'size' | 'type';
-	type SortDirection = 'asc' | 'desc';
-	
-	let sortColumn: SortColumn = 'name';
-	let sortDirection: SortDirection = 'asc';
+	let selectedIndex: number = -1;
+	let tableElement: HTMLDivElement;
 	
 	// Extract folder name from path
 	$: folderName = currentPath.split('/').filter(Boolean).pop() || 'Computer';
+	
+	// Sort files: folders first, then by name
+	$: sortedFiles = [...files].sort((a, b) => {
+		// Folders first
+		if (a.is_dir && !b.is_dir) return -1;
+		if (!a.is_dir && b.is_dir) return 1;
+		// Then alphabetically
+		return a.name.localeCompare(b.name);
+	});
+	
+	// Reset selection when folder changes
+	$: if (currentPath) {
+		selectedIndex = -1;
+	}
+	
+	// Preview file when selection changes
+	$: if (selectedIndex >= 0 && selectedIndex < sortedFiles.length) {
+		const file = sortedFiles[selectedIndex];
+		if (!file.is_dir) {
+			// Dispatch preview event for files
+			dispatch('fileSelect', file);
+		}
+	}
 	
 	// Check if file is an image
 	function isImageFile(file: any): boolean {
@@ -28,62 +50,115 @@
 	// Get thumbnail URL for image files
 	function getThumbnailUrl(file: any): string | null {
 		if (!isImageFile(file)) return null;
-		const url = convertFileSrc(file.path);
-		console.log('ContentPanel - getThumbnailUrl:', {
-			fileName: file.name,
-			filePath: file.path,
-			convertedUrl: url
-		});
-		return url;
+		return convertFileSrc(file.path);
 	}
 	
-	// Sort files based on current sort column and direction
-	$: sortedFiles = [...files].sort((a, b) => {
-		let result = 0;
+	function handleKeyDown(event: KeyboardEvent) {
+		if (sortedFiles.length === 0) return;
 		
-		switch (sortColumn) {
-			case 'name':
-				// Folders first, then by name
-				if (a.is_dir && !b.is_dir) result = -1;
-				else if (!a.is_dir && b.is_dir) result = 1;
-				else result = a.name.localeCompare(b.name);
+		switch(event.key) {
+			case 'ArrowDown':
+				event.preventDefault();
+				if (selectedIndex < sortedFiles.length - 1) {
+					selectedIndex++;
+					scrollToSelected();
+				} else if (selectedIndex === -1 && sortedFiles.length > 0) {
+					selectedIndex = 0;
+					scrollToSelected();
+				}
 				break;
-			
-			case 'modified':
-				const aTime = a.modified || a.created || 0;
-				const bTime = b.modified || b.created || 0;
-				result = aTime - bTime;
+				
+			case 'ArrowUp':
+				event.preventDefault();
+				if (selectedIndex > 0) {
+					selectedIndex--;
+					scrollToSelected();
+				}
 				break;
-			
-			case 'size':
-				const aSize = a.is_dir ? 0 : (a.size || 0);
-				const bSize = b.is_dir ? 0 : (b.size || 0);
-				result = aSize - bSize;
+				
+			case 'Enter':
+				event.preventDefault();
+				if (selectedIndex >= 0 && selectedIndex < sortedFiles.length) {
+					openFile(sortedFiles[selectedIndex]);
+				}
 				break;
-			
-			case 'type':
-				const aType = getFileType(a);
-				const bType = getFileType(b);
-				result = aType.localeCompare(bType);
+				
+			case 'Home':
+				event.preventDefault();
+				if (sortedFiles.length > 0) {
+					selectedIndex = 0;
+					scrollToSelected();
+				}
+				break;
+				
+			case 'End':
+				event.preventDefault();
+				if (sortedFiles.length > 0) {
+					selectedIndex = sortedFiles.length - 1;
+					scrollToSelected();
+				}
+				break;
+				
+			case 'Backspace':
+				event.preventDefault();
+				goUpOneLevel();
 				break;
 		}
-		
-		return sortDirection === 'asc' ? result : -result;
-	});
+	}
 	
-	function handleSort(column: SortColumn) {
-		if (sortColumn === column) {
-			// Toggle direction
-			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+	function scrollToSelected() {
+		if (!tableElement) return;
+		
+		const rows = tableElement.querySelectorAll('tbody tr');
+		if (selectedIndex >= 0 && selectedIndex < rows.length) {
+			const row = rows[selectedIndex] as HTMLElement;
+			row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
+	}
+	
+	async function openFile(file: any) {
+		if (file.is_dir) {
+			// Navigate into folder
+			currentFolderStore.setFolder(file.path, file.name);
+			try {
+				const files = await invoke('list_directory', { path: file.path }) as any[];
+				currentFolderStore.setFiles(files);
+			} catch (error) {
+				console.error('Failed to load folder contents:', error);
+				currentFolderStore.setFiles([]);
+			}
 		} else {
-			// New column, default to ascending
-			sortColumn = column;
-			sortDirection = 'asc';
+			// Already previewed via reactive statement, Enter just confirms
+			dispatch('fileSelect', file);
 		}
 	}
 	
-	function selectFile(file: any) {
-		dispatch('fileSelect', file);
+	async function goUpOneLevel() {
+		if (!currentPath) return;
+		
+		const pathParts = currentPath.split('/').filter(Boolean);
+		if (pathParts.length === 0) return;
+		
+		pathParts.pop(); // Remove last segment
+		const parentPath = '/' + pathParts.join('/');
+		const parentName = pathParts[pathParts.length - 1] || 'Computer';
+		
+		currentFolderStore.setFolder(parentPath, parentName);
+		try {
+			const files = await invoke('list_directory', { path: parentPath }) as any[];
+			currentFolderStore.setFiles(files);
+		} catch (error) {
+			console.error('Failed to load parent folder:', error);
+		}
+	}
+	
+	function selectFile(file: any, index: number) {
+		selectedIndex = index;
+		// Preview happens automatically via reactive statement
+		// Enter opens folders
+		if (file.is_dir) {
+			openFile(file);
+		}
 	}
 	
 	function formatSize(bytes: number): string {
@@ -92,14 +167,6 @@
 		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
 		if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
 		return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
-	}
-	
-	let imageErrors = new Set<string>();
-	
-	function handleThumbnailError(filePath: string) {
-		console.error('ContentPanel - Thumbnail failed to load:', filePath);
-		imageErrors.add(filePath);
-		imageErrors = imageErrors; // Trigger reactivity
 	}
 	
 	function formatDate(timestamp: number | string | undefined): string {
@@ -141,52 +208,12 @@
 		if (!ext || ext === fileName.toLowerCase()) return 'File';
 		
 		const typeMap: Record<string, string> = {
-			// Images
-			'jpg': 'JPEG image',
-			'jpeg': 'JPEG image',
-			'png': 'PNG image',
-			'gif': 'GIF image',
-			'webp': 'WebP image',
-			'heic': 'HEIC image',
-			'heif': 'HEIF image',
-			'bmp': 'BMP image',
-			'svg': 'SVG image',
-			// Videos
-			'mp4': 'MP4 video',
-			'mov': 'MOV video',
-			'avi': 'AVI video',
-			'mkv': 'MKV video',
-			'webm': 'WebM video',
-			// Audio
-			'mp3': 'MP3 audio',
-			'wav': 'WAV audio',
-			'flac': 'FLAC audio',
-			'm4a': 'M4A audio',
-			// Documents
-			'pdf': 'PDF document',
-			'doc': 'Word document',
-			'docx': 'Word document',
-			'txt': 'Text file',
-			'rtf': 'RTF document',
-			// Archives
-			'zip': 'ZIP archive',
-			'rar': 'RAR archive',
-			'7z': '7-Zip archive',
-			'tar': 'TAR archive',
-			'gz': 'GZIP archive',
-			// Code
-			'js': 'JavaScript file',
-			'ts': 'TypeScript file',
-			'py': 'Python file',
-			'java': 'Java file',
-			'cpp': 'C++ file',
-			'html': 'HTML file',
-			'css': 'CSS file',
-			// Executables
-			'exe': 'Application',
-			'app': 'Application',
-			'dmg': 'Disk Image',
-			'bin': 'Binary file'
+			'jpg': 'JPEG image', 'jpeg': 'JPEG image', 'png': 'PNG image',
+			'gif': 'GIF image', 'webp': 'WebP image', 'heic': 'HEIC image',
+			'mp4': 'MP4 video', 'mov': 'MOV video', 'avi': 'AVI video',
+			'mp3': 'MP3 audio', 'wav': 'WAV audio', 'pdf': 'PDF document',
+			'doc': 'Word document', 'docx': 'Word document', 'txt': 'Text file',
+			'zip': 'ZIP archive', 'rar': 'RAR archive',
 		};
 		
 		return typeMap[ext] || ext.toUpperCase() + ' file';
@@ -198,50 +225,29 @@
 		const fileName = file.name || '';
 		const ext = fileName.split('.').pop()?.toLowerCase();
 		
-		switch(ext) {
-			case 'jpg':
-			case 'jpeg':
-			case 'png':
-			case 'gif':
-			case 'webp':
-			case 'heic':
-			case 'heif':
-			case 'bmp':
-			case 'svg':
-				return '🖼️';
-			case 'mp4':
-			case 'mov':
-			case 'avi':
-			case 'mkv':
-			case 'webm':
-				return '🎬';
-			case 'pdf':
-				return '📄';
-			case 'doc':
-			case 'docx':
-			case 'txt':
-			case 'rtf':
-				return '📝';
-			case 'zip':
-			case 'rar':
-			case '7z':
-			case 'tar':
-			case 'gz':
-				return '📦';
-			case 'mp3':
-			case 'wav':
-			case 'flac':
-			case 'm4a':
-				return '🎵';
-			case 'exe':
-			case 'app':
-			case 'dmg':
-			case 'bin':
-				return '⚙️';
-			default:
-				return '📄';
-		}
+		const iconMap: Record<string, string> = {
+			'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
+			'mp4': '🎬', 'mov': '🎬', 'avi': '🎬',
+			'pdf': '📄', 'doc': '📝', 'docx': '📝', 'txt': '📝',
+			'zip': '📦', 'rar': '📦',
+			'mp3': '🎵', 'wav': '🎵',
+		};
+		
+		return iconMap[ext || ''] || '📄';
 	}
+	
+	// Only run in browser (not during SSR)
+	onMount(() => {
+		if (browser) {
+			window.addEventListener('keydown', handleKeyDown);
+		}
+	});
+	
+	onDestroy(() => {
+		if (browser) {
+			window.removeEventListener('keydown', handleKeyDown);
+		}
+	});
 </script>
 
 <style>
@@ -313,29 +319,6 @@
 		color: var(--text-muted);
 		border-bottom: 1px solid var(--panel-border);
 		white-space: nowrap;
-		cursor: pointer;
-		user-select: none;
-		transition: background-color var(--transition-fast);
-	}
-	
-	.content-table th:hover {
-		background-color: rgba(255, 255, 255, 0.05);
-	}
-	
-	.content-table th.sortable {
-		position: relative;
-	}
-	
-	.sort-indicator {
-		margin-left: var(--space-1);
-		font-size: 10px;
-		color: var(--text-accent);
-		display: inline-block;
-		transition: transform var(--transition-fast);
-	}
-	
-	.sort-indicator.desc {
-		transform: rotate(180deg);
 	}
 	
 	.content-table tbody tr {
@@ -350,6 +333,7 @@
 	
 	.content-table tbody tr.selected {
 		background-color: var(--nav-active-bg);
+		border-left: 2px solid var(--accent);
 	}
 	
 	.content-table td {
@@ -364,31 +348,30 @@
 		gap: var(--space-2);
 	}
 	
-	.file-icon {
-		font-size: 14px;
-		flex-shrink: 0;
-	}
-	
 	.file-thumbnail {
-		width: 32px;
-		height: 32px;
-		flex-shrink: 0;
-		border-radius: 4px;
-		object-fit: cover;
-		background-color: var(--bg-subtle);
-	}
-	
-	.file-thumbnail-placeholder {
 		width: 32px;
 		height: 32px;
 		flex-shrink: 0;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 20px;
+		overflow: hidden;
+		border-radius: 4px;
+		background-color: var(--bg-subtle);
 	}
 	
-	.empty-state {
+	.file-thumbnail img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	
+	.file-icon {
+		font-size: 20px;
+		flex-shrink: 0;
+	}
+	
+	.empty-state, .loading-state {
 		flex: 1;
 		display: flex;
 		align-items: center;
@@ -399,14 +382,13 @@
 		font-size: var(--text-sm);
 	}
 	
-	.loading-state {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: var(--space-5);
+	.keyboard-hint {
+		padding: var(--space-2) var(--space-3);
+		background-color: var(--bg-subtle);
+		border-top: 1px solid var(--panel-border);
+		font-size: var(--text-xs);
 		color: var(--text-muted);
-		font-size: var(--text-sm);
+		text-align: center;
 	}
 </style>
 
@@ -435,53 +417,30 @@
 				This folder is empty
 			</div>
 		{:else}
-			<div class="content-table-wrapper">
+			<div class="content-table-wrapper" bind:this={tableElement}>
 				<table class="content-table">
 					<thead>
 						<tr>
-							<th style="width: 40%;" class="sortable" on:click={() => handleSort('name')}>
-								Name
-								{#if sortColumn === 'name'}
-									<span class="sort-indicator" class:desc={sortDirection === 'desc'}>▲</span>
-								{/if}
-							</th>
-							<th style="width: 25%;" class="sortable" on:click={() => handleSort('modified')}>
-								Date Modified
-								{#if sortColumn === 'modified'}
-									<span class="sort-indicator" class:desc={sortDirection === 'desc'}>▲</span>
-								{/if}
-							</th>
-							<th style="width: 15%;" class="sortable" on:click={() => handleSort('size')}>
-								Size
-								{#if sortColumn === 'size'}
-									<span class="sort-indicator" class:desc={sortDirection === 'desc'}>▲</span>
-								{/if}
-							</th>
-							<th style="width: 20%;" class="sortable" on:click={() => handleSort('type')}>
-								Type
-								{#if sortColumn === 'type'}
-									<span class="sort-indicator" class:desc={sortDirection === 'desc'}>▲</span>
-								{/if}
-							</th>
+							<th style="width: 40%;">Name</th>
+							<th style="width: 25%;">Date Modified</th>
+							<th style="width: 15%;">Size</th>
+							<th style="width: 20%;">Type</th>
 						</tr>
 					</thead>
 					<tbody>
-						{#each sortedFiles as file}
-							<tr on:click={() => selectFile(file)}>
+						{#each sortedFiles as file, index}
+							<tr 
+								class:selected={index === selectedIndex}
+								on:click={() => selectFile(file, index)}
+							>
 								<td>
 									<div class="file-name">
-										{#if getThumbnailUrl(file) && !imageErrors.has(file.path)}
-											<img 
-												src={getThumbnailUrl(file)} 
-												alt={file.name}
-												class="file-thumbnail"
-												loading="lazy"
-												on:error={() => handleThumbnailError(file.path)}
-											/>
-										{:else}
-											<div class="file-thumbnail-placeholder">
-												{getFileIcon(file)}
+										{#if isImageFile(file)}
+											<div class="file-thumbnail">
+												<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" />
 											</div>
+										{:else}
+											<span class="file-icon">{getFileIcon(file)}</span>
 										{/if}
 										<span>{file.name}</span>
 									</div>
@@ -493,6 +452,9 @@
 						{/each}
 					</tbody>
 				</table>
+			</div>
+			<div class="keyboard-hint">
+				↑↓ Navigate & Preview • Enter Open Folder • Backspace Go Up • Home/End Jump
 			</div>
 		{/if}
 	</div>

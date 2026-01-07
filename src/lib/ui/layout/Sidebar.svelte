@@ -2,28 +2,154 @@
 	import ThemeToggle from '../components/ThemeToggle.svelte';
 	import FolderTree from '../components/FolderTree.svelte';
 	import { folderAccessStore } from '$lib/stores/folderAccessStore';
+	import { currentFolderStore } from '$lib/stores/currentFolderStore';
 	import type { FolderAccess } from '$lib/stores/folderAccessStore';
+	import { invoke } from '@tauri-apps/api/core';
+	
+	interface ExpandableFavorite extends FolderAccess {
+		expanded: boolean;
+		children: any[] | null;
+	}
 	
 	let activeTab: 'folders' | 'favorites' = 'folders';
-	let favorites: FolderAccess[] = [];
+	let expandedFavorites: ExpandableFavorite[] = [];
+	let isUpdating = false;
 	
 	// Subscribe to folder access store
 	folderAccessStore.subscribe(value => {
-		// Get folders accessed 2+ times
-		favorites = value
+		if (isUpdating) return;
+		
+		const rawFavorites = value
 			.filter(f => f.count >= 2)
 			.sort((a, b) => b.count - a.count);
+		
+		// Preserve expansion state
+		const oldExpanded = new Map(
+			expandedFavorites.map(f => [f.path, { expanded: f.expanded, children: f.children }])
+		);
+		
+		expandedFavorites = rawFavorites.map(raw => {
+			const old = oldExpanded.get(raw.path);
+			return {
+				...raw,
+				expanded: old?.expanded || false,
+				children: old?.children || null
+			};
+		});
 	});
 	
 	function switchTab(tab: 'folders' | 'favorites') {
 		activeTab = tab;
 	}
 	
-	function selectFavorite(favorite: FolderAccess) {
-		// Track this access too
+	async function toggleFavorite(index: number) {
+		isUpdating = true;
+		
+		const favorite = expandedFavorites[index];
+		
+		// Track access
 		folderAccessStore.trackAccess(favorite.path, favorite.name);
-		console.log('Selected favorite:', favorite.path);
-		// TODO: Integrate with scan functionality
+		
+		// Load content panel immediately (don't wait)
+		currentFolderStore.setFolder(favorite.path, favorite.name);
+		invoke('list_directory', { path: favorite.path })
+			.then((files: any) => {
+				currentFolderStore.setFiles(files);
+			})
+			.catch((error) => {
+				console.error('Failed to load folder:', error);
+				currentFolderStore.setFiles([]);
+			});
+		
+		// Toggle expansion IMMEDIATELY (don't wait for children)
+		favorite.expanded = !favorite.expanded;
+		
+		// Force UI update NOW
+		expandedFavorites = [...expandedFavorites];
+		
+		// Load children in background if expanding
+		if (favorite.expanded && favorite.children === null) {
+			invoke('list_directory', { path: favorite.path })
+				.then((allItems: any) => {
+					const folders = allItems
+						.filter((item: any) => item.is_dir)
+						.map((item: any) => ({
+							name: item.name,
+							path: item.path,
+							is_dir: item.is_dir,
+							expanded: false,
+							children: null
+						}));
+					
+					favorite.children = folders;
+					expandedFavorites = [...expandedFavorites];
+				})
+				.catch((error) => {
+					console.error('Failed to load children:', error);
+					favorite.children = [];
+					expandedFavorites = [...expandedFavorites];
+				});
+		}
+		
+		// Re-enable store updates
+		setTimeout(() => {
+			isUpdating = false;
+		}, 50);
+	}
+	
+	async function toggleSubfolder(parentIndex: number, childIndex: number) {
+		isUpdating = true;
+		
+		const parent = expandedFavorites[parentIndex];
+		const child = parent.children![childIndex];
+		
+		// Track access
+		folderAccessStore.trackAccess(child.path, child.name);
+		
+		// Load content panel (async)
+		currentFolderStore.setFolder(child.path, child.name);
+		invoke('list_directory', { path: child.path })
+			.then((files: any) => {
+				currentFolderStore.setFiles(files);
+			})
+			.catch((error) => {
+				console.error('Failed to load subfolder:', error);
+				currentFolderStore.setFiles([]);
+			});
+		
+		// Toggle IMMEDIATELY
+		child.expanded = !child.expanded;
+		
+		// Update UI NOW
+		expandedFavorites = [...expandedFavorites];
+		
+		// Load children in background
+		if (child.expanded && child.children === null) {
+			invoke('list_directory', { path: child.path })
+				.then((allItems: any) => {
+					const folders = allItems
+						.filter((item: any) => item.is_dir)
+						.map((item: any) => ({
+							name: item.name,
+							path: item.path,
+							is_dir: item.is_dir,
+							expanded: false,
+							children: null
+						}));
+					
+					child.children = folders;
+					expandedFavorites = [...expandedFavorites];
+				})
+				.catch((error) => {
+					console.error('Failed to load sub-children:', error);
+					child.children = [];
+					expandedFavorites = [...expandedFavorites];
+				});
+		}
+		
+		setTimeout(() => {
+			isUpdating = false;
+		}, 50);
 	}
 </script>
 
@@ -65,7 +191,7 @@
 		background: none;
 		color: var(--text-muted);
 		font-size: var(--text-sm);
-		font-weight: var(--weight-semibold);
+		font-weight: var(--semibold);
 		cursor: pointer;
 		transition: all var(--transition-fast);
 		border-bottom: 2px solid transparent;
@@ -123,6 +249,21 @@
 		-webkit-backdrop-filter: blur(10px);
 	}
 	
+	.folder-arrow {
+		font-size: 10px;
+		color: var(--text-muted);
+		flex-shrink: 0;
+		width: 12px;
+		transition: transform 0.15s ease-out;
+		display: inline-block;
+		transform-origin: center;
+		will-change: transform;
+	}
+	
+	.folder-arrow.expanded {
+		transform: rotate(90deg);
+	}
+	
 	.favorite-icon {
 		font-size: 14px;
 		flex-shrink: 0;
@@ -137,10 +278,8 @@
 		white-space: nowrap;
 	}
 	
-	.favorite-count {
-		font-size: var(--text-xs);
-		color: var(--text-muted);
-		flex-shrink: 0;
+	.favorite-children {
+		padding-left: var(--space-4);
 	}
 	
 	.empty-state {
@@ -189,18 +328,63 @@
 			{#if activeTab === 'folders'}
 				<FolderTree />
 			{:else}
-				{#if favorites.length === 0}
+				{#if expandedFavorites.length === 0}
 					<div class="empty-state">
 						No favorites yet.<br/>
 						Access folders 2+ times to add them here automatically.
 					</div>
 				{:else}
 					<div class="favorites-list">
-						{#each favorites as favorite}
-							<div class="favorite-item" on:click={() => selectFavorite(favorite)}>
-								<span class="favorite-icon">📁</span>
-								<span class="favorite-name">{favorite.name}</span>
-								<span class="favorite-count">×{favorite.count}</span>
+						{#each expandedFavorites as favorite, i (favorite.path)}
+							<div>
+								<!-- Parent Favorite -->
+								<div 
+									class="favorite-item" 
+									on:click={() => toggleFavorite(i)}
+									role="button"
+									tabindex="0"
+								>
+									<span class="folder-arrow" class:expanded={favorite.expanded}>▶</span>
+									<span class="favorite-icon">📁</span>
+									<span class="favorite-name">{favorite.name}</span>
+								</div>
+								
+								<!-- Subfolders -->
+								{#if favorite.expanded && favorite.children && favorite.children.length > 0}
+									<div class="favorite-children">
+										{#each favorite.children as child, j (child.path)}
+											<div>
+												<div 
+													class="favorite-item" 
+													on:click={() => toggleSubfolder(i, j)}
+													role="button"
+													tabindex="0"
+												>
+													<span class="folder-arrow" class:expanded={child.expanded}>▶</span>
+													<span class="favorite-icon">📁</span>
+													<span class="favorite-name">{child.name}</span>
+												</div>
+												
+												<!-- Sub-subfolders -->
+												{#if child.expanded && child.children && child.children.length > 0}
+													<div class="favorite-children">
+														{#each child.children as grandchild (grandchild.path)}
+															<div 
+																class="favorite-item"
+																role="button"
+																tabindex="0"
+															>
+																<span class="folder-arrow"></span>
+																<span class="favorite-icon">📁</span>
+																<span class="favorite-name">{grandchild.name}</span>
+															</div>
+														{/each}
+													</div>
+												{/if}
+											</div>
+										{/each}
+									</div>
+								{/if}
 							</div>
 						{/each}
 					</div>

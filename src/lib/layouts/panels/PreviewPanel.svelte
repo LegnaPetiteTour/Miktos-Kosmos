@@ -3,10 +3,22 @@
 	
 	export let selectedFile: any = null;
 	
-	function isImageFile(file: any): boolean {
-		if (!file || file.is_dir) return false;
+	let imageDimensions: { width: number; height: number } | null = null;
+	let videoDimensions: { width: number; height: number } | null = null;
+	let imageLoadError = false;
+	let videoLoadError = false;
+	
+	function getFileType(file: any): 'image' | 'video' | 'pdf' | 'audio' | 'document' | 'unknown' {
+		if (!file || file.is_dir) return 'unknown';
 		const ext = file.name?.split('.').pop()?.toLowerCase() || '';
-		return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'bmp', 'svg'].includes(ext);
+		
+		if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'bmp', 'svg'].includes(ext)) return 'image';
+		if (['mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v', 'mpg', 'mpeg'].includes(ext)) return 'video';
+		if (['pdf'].includes(ext)) return 'pdf';
+		if (['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'].includes(ext)) return 'audio';
+		if (['doc', 'docx', 'txt', 'rtf', 'odt'].includes(ext)) return 'document';
+		
+		return 'unknown';
 	}
 	
 	function formatSize(bytes: number): string {
@@ -45,31 +57,48 @@
 		}
 	}
 	
-	$: imageUrl = selectedFile && isImageFile(selectedFile) 
-		? convertFileSrc(selectedFile.path) 
-		: null;
-	
-	$: if (selectedFile) {
-		console.log('PreviewPanel - selectedFile changed:', {
-			fileName: selectedFile.name,
-			filePath: selectedFile.path,
-			isImage: isImageFile(selectedFile),
-			imageUrl: imageUrl
-		});
+	function formatDimensions(dims: { width: number; height: number } | null): string {
+		if (!dims) return 'Loading...';
+		return `${dims.width} × ${dims.height} px`;
 	}
 	
-	let imageLoadError = false;
+	$: fileType = selectedFile ? getFileType(selectedFile) : 'unknown';
+	$: fileUrl = selectedFile && !selectedFile.is_dir ? convertFileSrc(selectedFile.path) : null;
+	
+	// Reset state when file changes
+	$: if (selectedFile) {
+		imageDimensions = null;
+		videoDimensions = null;
+		imageLoadError = false;
+		videoLoadError = false;
+	}
+	
+	function handleImageLoad(event: Event) {
+		const img = event.target as HTMLImageElement;
+		imageDimensions = {
+			width: img.naturalWidth,
+			height: img.naturalHeight
+		};
+	}
 	
 	function handleImageError(event: Event) {
-		console.error('PreviewPanel - Image failed to load:', {
-			imageUrl: imageUrl,
-			filePath: selectedFile?.path
-		});
+		console.error('Image failed to load:', selectedFile?.path);
 		imageLoadError = true;
+		imageDimensions = null;
 	}
 	
-	$: if (imageUrl) {
-		imageLoadError = false;
+	function handleVideoLoad(event: Event) {
+		const video = event.target as HTMLVideoElement;
+		videoDimensions = {
+			width: video.videoWidth,
+			height: video.videoHeight
+		};
+	}
+	
+	function handleVideoError(event: Event) {
+		console.error('Video failed to load:', selectedFile?.path);
+		videoLoadError = true;
+		videoDimensions = null;
 	}
 </script>
 
@@ -98,7 +127,7 @@
 		overflow: hidden;
 	}
 	
-	.preview-image-container {
+	.preview-media-container {
 		flex: 1;
 		display: flex;
 		align-items: center;
@@ -108,12 +137,52 @@
 		overflow: hidden;
 	}
 	
-	.preview-image {
+	.preview-image, .preview-video {
 		max-width: 100%;
 		max-height: 100%;
 		object-fit: contain;
 		border-radius: var(--radius-md);
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	}
+	
+	.preview-video {
+		background-color: #000;
+	}
+	
+	.preview-pdf-container {
+		flex: 1;
+		padding: var(--space-4);
+		background-color: var(--bg-subtle);
+		overflow: hidden;
+	}
+	
+	.preview-pdf {
+		width: 100%;
+		height: 100%;
+		border: none;
+		border-radius: var(--radius-md);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	}
+	
+	.preview-audio-container {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: var(--space-4);
+		background-color: var(--bg-subtle);
+	}
+	
+	.audio-icon {
+		font-size: 64px;
+		margin-bottom: var(--space-4);
+		opacity: 0.5;
+	}
+	
+	.preview-audio {
+		width: 100%;
+		max-width: 500px;
 	}
 	
 	.preview-info {
@@ -167,6 +236,23 @@
 		margin-bottom: var(--space-3);
 		opacity: 0.5;
 	}
+	
+	.unsupported-preview {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: var(--space-4);
+		color: var(--text-muted);
+		text-align: center;
+	}
+	
+	.unsupported-icon {
+		font-size: 48px;
+		margin-bottom: var(--space-3);
+		opacity: 0.5;
+	}
 </style>
 
 <div class="preview-panel">
@@ -190,9 +276,9 @@
 				<span class="metadata-value">{formatDate(selectedFile.modified || selectedFile.created)}</span>
 			</div>
 		</div>
-	{:else if imageUrl}
+	{:else if fileType === 'image'}
 		<div class="preview-content">
-			<div class="preview-image-container">
+			<div class="preview-media-container">
 				{#if imageLoadError}
 					<div style="text-align: center; padding: var(--space-4); color: var(--text-muted);">
 						<div style="font-size: 48px; margin-bottom: var(--space-2);">⚠️</div>
@@ -201,9 +287,10 @@
 					</div>
 				{:else}
 					<img 
-						src={imageUrl} 
+						src={fileUrl} 
 						alt={selectedFile.name} 
 						class="preview-image" 
+						on:load={handleImageLoad}
 						on:error={handleImageError}
 					/>
 				{/if}
@@ -211,6 +298,12 @@
 			<div class="preview-info">
 				<div class="preview-filename">{selectedFile.name}</div>
 				<div class="preview-metadata">
+					{#if imageDimensions}
+						<div class="metadata-row">
+							<span class="metadata-label">Dimensions:</span>
+							<span class="metadata-value">{formatDimensions(imageDimensions)}</span>
+						</div>
+					{/if}
 					<div class="metadata-row">
 						<span class="metadata-label">Size:</span>
 						<span class="metadata-value">{formatSize(selectedFile.size)}</span>
@@ -219,12 +312,125 @@
 						<span class="metadata-label">Modified:</span>
 						<span class="metadata-value">{formatDate(selectedFile.modified)}</span>
 					</div>
-					{#if selectedFile.created && selectedFile.created !== selectedFile.modified}
+					<div class="metadata-row">
+						<span class="metadata-label">Path:</span>
+						<span class="metadata-value" style="font-size: var(--text-xs); word-break: break-all;">
+							{selectedFile.path}
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	{:else if fileType === 'video'}
+		<div class="preview-content">
+			<div class="preview-media-container">
+				{#if videoLoadError}
+					<div style="text-align: center; padding: var(--space-4); color: var(--text-muted);">
+						<div style="font-size: 48px; margin-bottom: var(--space-2);">⚠️</div>
+						<p>Failed to load video</p>
+						<p style="font-size: var(--text-xs); margin-top: var(--space-2); word-break: break-all;">{selectedFile.path}</p>
+					</div>
+				{:else}
+					<video
+						src={fileUrl}
+						class="preview-video"
+						controls
+						preload="metadata"
+						on:loadedmetadata={handleVideoLoad}
+						on:error={handleVideoError}
+					>
+						<track kind="captions" />
+						Your browser does not support the video tag.
+					</video>
+				{/if}
+			</div>
+			<div class="preview-info">
+				<div class="preview-filename">{selectedFile.name}</div>
+				<div class="preview-metadata">
+					{#if videoDimensions}
 						<div class="metadata-row">
-							<span class="metadata-label">Created:</span>
-							<span class="metadata-value">{formatDate(selectedFile.created)}</span>
+							<span class="metadata-label">Dimensions:</span>
+							<span class="metadata-value">{formatDimensions(videoDimensions)}</span>
 						</div>
 					{/if}
+					<div class="metadata-row">
+						<span class="metadata-label">Size:</span>
+						<span class="metadata-value">{formatSize(selectedFile.size)}</span>
+					</div>
+					<div class="metadata-row">
+						<span class="metadata-label">Modified:</span>
+						<span class="metadata-value">{formatDate(selectedFile.modified)}</span>
+					</div>
+					<div class="metadata-row">
+						<span class="metadata-label">Path:</span>
+						<span class="metadata-value" style="font-size: var(--text-xs); word-break: break-all;">
+							{selectedFile.path}
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	{:else if fileType === 'pdf'}
+		<div class="preview-content">
+			<div class="preview-pdf-container">
+				<iframe
+					src={fileUrl}
+					class="preview-pdf"
+					title={selectedFile.name}
+				/>
+			</div>
+			<div class="preview-info">
+				<div class="preview-filename">{selectedFile.name}</div>
+				<div class="preview-metadata">
+					<div class="metadata-row">
+						<span class="metadata-label">Type:</span>
+						<span class="metadata-value">PDF Document</span>
+					</div>
+					<div class="metadata-row">
+						<span class="metadata-label">Size:</span>
+						<span class="metadata-value">{formatSize(selectedFile.size)}</span>
+					</div>
+					<div class="metadata-row">
+						<span class="metadata-label">Modified:</span>
+						<span class="metadata-value">{formatDate(selectedFile.modified)}</span>
+					</div>
+					<div class="metadata-row">
+						<span class="metadata-label">Path:</span>
+						<span class="metadata-value" style="font-size: var(--text-xs); word-break: break-all;">
+							{selectedFile.path}
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	{:else if fileType === 'audio'}
+		<div class="preview-content">
+			<div class="preview-audio-container">
+				<div class="audio-icon">🎵</div>
+				<audio
+					src={fileUrl}
+					class="preview-audio"
+					controls
+					preload="metadata"
+				>
+					Your browser does not support the audio tag.
+				</audio>
+			</div>
+			<div class="preview-info">
+				<div class="preview-filename">{selectedFile.name}</div>
+				<div class="preview-metadata">
+					<div class="metadata-row">
+						<span class="metadata-label">Type:</span>
+						<span class="metadata-value">Audio File</span>
+					</div>
+					<div class="metadata-row">
+						<span class="metadata-label">Size:</span>
+						<span class="metadata-value">{formatSize(selectedFile.size)}</span>
+					</div>
+					<div class="metadata-row">
+						<span class="metadata-label">Modified:</span>
+						<span class="metadata-value">{formatDate(selectedFile.modified)}</span>
+					</div>
 					<div class="metadata-row">
 						<span class="metadata-label">Path:</span>
 						<span class="metadata-value" style="font-size: var(--text-xs); word-break: break-all;">
@@ -235,32 +441,30 @@
 			</div>
 		</div>
 	{:else}
-		<div class="preview-info" style="flex: 1;">
-			<div class="preview-filename">{selectedFile.name}</div>
-			<div class="preview-metadata">
-				<div class="metadata-row">
-					<span class="metadata-label">Type:</span>
-					<span class="metadata-value">{selectedFile.name.split('.').pop()?.toUpperCase() || 'FILE'}</span>
-				</div>
-				<div class="metadata-row">
-					<span class="metadata-label">Size:</span>
-					<span class="metadata-value">{formatSize(selectedFile.size)}</span>
-				</div>
-				<div class="metadata-row">
-					<span class="metadata-label">Modified:</span>
-					<span class="metadata-value">{formatDate(selectedFile.modified)}</span>
-				</div>
-				{#if selectedFile.created && selectedFile.created !== selectedFile.modified}
+		<div class="unsupported-preview">
+			<div class="unsupported-icon">📄</div>
+			<p style="margin-bottom: var(--space-3);">Preview not available for this file type</p>
+			<div class="preview-info" style="width: 100%; max-width: 500px;">
+				<div class="preview-filename">{selectedFile.name}</div>
+				<div class="preview-metadata">
 					<div class="metadata-row">
-						<span class="metadata-label">Created:</span>
-						<span class="metadata-value">{formatDate(selectedFile.created)}</span>
+						<span class="metadata-label">Type:</span>
+						<span class="metadata-value">{selectedFile.name.split('.').pop()?.toUpperCase() || 'FILE'}</span>
 					</div>
-				{/if}
-				<div class="metadata-row">
-					<span class="metadata-label">Path:</span>
-					<span class="metadata-value" style="font-size: var(--text-xs); word-break: break-all;">
-						{selectedFile.path}
-					</span>
+					<div class="metadata-row">
+						<span class="metadata-label">Size:</span>
+						<span class="metadata-value">{formatSize(selectedFile.size)}</span>
+					</div>
+					<div class="metadata-row">
+						<span class="metadata-label">Modified:</span>
+						<span class="metadata-value">{formatDate(selectedFile.modified)}</span>
+					</div>
+					<div class="metadata-row">
+						<span class="metadata-label">Path:</span>
+						<span class="metadata-value" style="font-size: var(--text-xs); word-break: break-all;">
+							{selectedFile.path}
+						</span>
+					</div>
 				</div>
 			</div>
 		</div>
