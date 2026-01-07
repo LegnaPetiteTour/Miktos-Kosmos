@@ -11,30 +11,38 @@ pnpm tauri dev
 ## 📋 Daily Development Commands
 
 ```bash
+
 # Start development server
+
 pnpm tauri dev
 
 # Build for production
+
 pnpm tauri build
 
 # Format Rust code
+
 cd src-tauri && cargo fmt && cd ..
 
 # Check for errors
+
 cd src-tauri && cargo clippy && cd ..
 
 # Run tests
+
 cd src-tauri && cargo test && cd ..
 ```
 
 ## 📂 Key Files to Edit
 
 ### Frontend
+
 - `src/routes/+page.svelte` - Main page
 - `src/lib/components/` - Components (create as needed)
 - `src/app.css` - Global styles
 
 ### Backend
+
 - `src-tauri/src/scanner.rs` - File scanning
 - `src-tauri/src/commands.rs` - API endpoints
 - `src-tauri/src/types.rs` - Data structures
@@ -58,28 +66,31 @@ cd src-tauri && cargo test && cd ..
 
 ## 🆘 Troubleshooting
 
-**Error: "command not found: tauri"**
+#### Error: "command not found: tauri"
+
 ```bash
 pnpm install
 ```
 
-**Error: Rust compilation fails**
+#### Error: Rust compilation fails
+
 ```bash
 cd src-tauri
 cargo clean
 cargo build
 ```
 
-**Error: Port 5173 in use**
+#### Error: Port 5173 in use
+
 ```bash
 lsof -ti:5173 | xargs kill -9
 ```
 
 ## 🎓 Learning Resources
 
-- Tauri: https://tauri.app/
-- SvelteKit: https://kit.svelte.dev/
-- Rust: https://doc.rust-lang.org/book/
+- Tauri: <https://tauri.app/>
+- SvelteKit: <https://kit.svelte.dev/>
+- Rust: <https://doc.rust-lang.org/book/>
 
 ## 💡 Philosophy
 
@@ -91,4 +102,4 @@ lsof -ti:5173 | xargs kill -9
 
 ---
 
-**Keep this file open while developing!**
+#### Keep this file open while developing!
