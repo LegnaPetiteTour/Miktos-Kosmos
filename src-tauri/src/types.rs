@@ -55,18 +55,30 @@ pub struct FileTypeStats {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QualityIssues {
+    pub screenshots: usize,
+    pub duplicates: usize,
+    pub low_resolution: usize,      // Images below 1080p
+    pub small_files: usize,          // Compressed/low quality (< 500KB)
+    pub missing_metadata: usize,     // No EXIF date
+    pub potential_memes: usize,      // Suspicious filenames
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanStats {
     pub total_files: usize,
     pub file_types: FileTypeStats,
-    pub screenshots: usize,
-    pub duplicates: usize,
+    pub screenshots: usize,          // Deprecated - use quality.screenshots
+    pub duplicates: usize,            // Deprecated - use quality.duplicates
     pub total_size: u64,
     pub date_range: Option<(DateTime<Utc>, DateTime<Utc>)>,
+    pub quality: QualityIssues,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanResult {
-    pub files: Vec<FileMetadata>,  // Changed from 'photos'
+    pub root_path: String,              // The scanned folder path
+    pub files: Vec<FileMetadata>,       // Changed from 'photos'
     pub stats: ScanStats,
 }
 

@@ -2,6 +2,7 @@ use crate::scanner::Scanner;
 use crate::organizer::generate_organization_plan;
 use crate::executor::execute_organization_plan;
 use crate::types::*;
+use tauri::AppHandle;
 
 #[tauri::command]
 pub fn greet(name: &str) -> String {
@@ -9,9 +10,9 @@ pub fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-pub async fn scan_directory(path: String) -> Result<ScanResult, String> {
+pub async fn scan_directory(path: String, app_handle: AppHandle) -> Result<ScanResult, String> {
     let scanner = Scanner::new(&path);
-    scanner.scan().map_err(|e| e.to_string())
+    scanner.scan(&app_handle).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

@@ -1,11 +1,12 @@
 use std::path::{Path, PathBuf};
 use std::fs;
+use std::collections::HashMap;
 use walkdir::WalkDir;
 use sha2::{Sha256, Digest};
 use chrono::{DateTime, Utc, NaiveDateTime};
 use std::io::Read;
 use exif::{Reader, In, Tag};
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 
 use crate::types::*;
 
@@ -101,6 +102,56 @@ impl Scanner {
                 }
             });
 
+        // Calculate quality issues
+        let image_files: Vec<&FileMetadata> = files.iter()
+            .filter(|f| matches!(f.file_type, FileType::Image))
+            .collect();
+
+        // 1. Count screenshots (already detected)
+        let screenshots = screenshot_count;
+
+        // 2. Detect duplicates by hash
+        let mut hash_map: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+        for file in &files {
+            *hash_map.entry(file.hash.clone()).or_insert(0) += 1;
+        }
+        let duplicates = hash_map.values().filter(|&&count| count > 1)
+            .map(|&count| count - 1)
+            .sum();
+
+        // 3. Low resolution images (below 1920×1080)
+        let low_resolution = image_files.iter()
+            .filter(|f| {
+                if let (Some(w), Some(h)) = (f.width, f.height) {
+                    (w as u64) * (h as u64) < (1920 * 1080)
+                } else {
+                    false
+                }
+            })
+            .count();
+
+        // 4. Small files (compressed/low quality - below 500KB)
+        let small_files = image_files.iter()
+            .filter(|f| f.file_size < 500 * 1024)
+            .count();
+
+        // 5. Missing metadata (no EXIF date)
+        let missing_metadata = image_files.iter()
+            .filter(|f| f.date_taken.is_none())
+            .count();
+
+        // 6. Potential memes/downloads (suspicious filenames)
+        let suspicious_patterns = vec![
+            "meme", "funny", "lol", "image", "download", "untitled",
+            "img_", "pic_", "photo_", "picture_", "file_", "temp"
+        ];
+        let potential_memes = files.iter()
+            .filter(|f| {
+                let file_name = f.file_name.to_lowercase();
+                suspicious_patterns.iter().any(|pattern| file_name.contains(pattern))
+            })
+            .count();
+
         let stats = ScanStats {
             total_files: files.len(),
             file_types: FileTypeStats {
@@ -112,9 +163,17 @@ impl Scanner {
                 other: 0,
             },
             screenshots: screenshot_count,
-            duplicates: 0, // Will be calculated later
+            duplicates,
             total_size,
             date_range,
+            quality: QualityIssues {
+                screenshots,
+                duplicates,
+                low_resolution,
+                small_files,
+                missing_metadata,
+                potential_memes,
+            },
         };
 
         Ok(ScanResult { 
