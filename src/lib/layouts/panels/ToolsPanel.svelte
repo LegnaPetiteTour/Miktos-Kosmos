@@ -31,12 +31,13 @@
 			.map((f: any) => f.modified)
 			.filter((d: any) => d)
 			.sort();
-		const oldestDate = dates[0];
-		const newestDate = dates[dates.length - 1];
+		const oldestDate = dates.length > 0 ? dates[0] : null;
+		const newestDate = dates.length > 0 ? dates[dates.length - 1] : null;
 
 		// Count file types
 		const typeCounts: Record<string, number> = {};
 		files.forEach((file: any) => {
+			if (!file || !file.name) return;
 			const ext = file.name.split('.').pop()?.toLowerCase() || 'unknown';
 			const type = getFileType(ext);
 			typeCounts[type] = (typeCounts[type] || 0) + 1;
@@ -44,13 +45,16 @@
 
 		// Quality analysis
 		const screenshots = files.filter((f: any) => 
-			f.name.toLowerCase().includes('screenshot') || 
-			f.name.toLowerCase().includes('screen shot')
+			f && f.name && (
+				f.name.toLowerCase().includes('screenshot') || 
+				f.name.toLowerCase().includes('screen shot')
+			)
 		).length;
 		
 		// Simple duplicate detection (same size)
 		const sizeCounts: Record<number, number> = {};
 		files.forEach((file: any) => {
+			if (!file) return;
 			const size = file.size || 0;
 			sizeCounts[size] = (sizeCounts[size] || 0) + 1;
 		});
@@ -63,9 +67,9 @@
 			newestDate,
 			typeCounts,
 			screenshots,
-			screenshotPercentage: ((screenshots / files.length) * 100).toFixed(1),
+			screenshotPercentage: files.length > 0 ? ((screenshots / files.length) * 100).toFixed(1) : '0.0',
 			duplicates,
-			duplicatePercentage: ((duplicates / files.length) * 100).toFixed(1)
+			duplicatePercentage: files.length > 0 ? ((duplicates / files.length) * 100).toFixed(1) : '0.0'
 		};
 	}
 
