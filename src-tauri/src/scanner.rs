@@ -5,6 +5,7 @@ use sha2::{Sha256, Digest};
 use chrono::{DateTime, Utc, NaiveDateTime};
 use std::io::Read;
 use exif::{Reader, In, Tag};
+use tauri::AppHandle;
 
 use crate::types::*;
 
@@ -19,12 +20,16 @@ impl Scanner {
         }
     }
 
-    pub fn scan(&self) -> Result<ScanResult, Box<dyn std::error::Error>> {
+    pub fn scan(&self, app_handle: &AppHandle) -> Result<ScanResult, Box<dyn std::error::Error>> {
+        // Step 1: Quick count of total files
+        let total_files = self.count_total_files();
+        
         let mut files = Vec::new();
         let mut total_size = 0u64;
         let mut screenshot_count = 0;
         let mut image_count = 0;
         let mut video_count = 0;
+        let mut processed_count = 0;
 
         for entry in WalkDir::new(&self.root_path)
             .follow_links(false)
@@ -32,6 +37,12 @@ impl Scanner {
             .filter_map(|e| e.ok())
         {
             if entry.file_type().is_file() {
+                let file_name = entry.path()
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string();
+                
                 if let Some(ext) = entry.path().extension() {
                     let ext = ext.to_string_lossy().to_lowercase();
                     
@@ -54,6 +65,28 @@ impl Scanner {
                             files.push(metadata);
                         }
                     }
+                }
+                
+                // Update progress
+                processed_count += 1;
+                
+                // Emit progress every 10 files or on last file
+                if processed_count % 10 == 0 || processed_count == total_files {
+                    let percentage = if total_files > 0 {
+                        (processed_count as f32 / total_files as f32) * 100.0
+                    } else {
+                        0.0
+                    };
+                    
+                    let progress = ScanProgress {
+                        total_files,
+                        processed_files: processed_count,
+                        current_file: file_name,
+                        percentage,
+                    };
+                    
+                    // Emit progress event (ignore errors)
+                    let _ = app_handle.emit("scan-progress", &progress);
                 }
             }
         }
@@ -84,7 +117,21 @@ impl Scanner {
             date_range,
         };
 
-        Ok(ScanResult { files, stats })
+        Ok(ScanResult { 
+            root_path: self.root_path.to_string_lossy().to_string(),
+            files, 
+            stats 
+        })
+    }
+    
+    // Quick count of total files (just metadata, no processing)
+    fn count_total_files(&self) -> usize {
+        WalkDir::new(&self.root_path)
+            .follow_links(false)
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .filter(|e| e.file_type().is_file())
+            .count()
     }
 
     fn process_image(&self, path: &Path) -> Result<FileMetadata, Box<dyn std::error::Error>> {
