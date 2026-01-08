@@ -821,8 +821,13 @@
                                                                         </span>
                                                                 </div>
                                                         {/if}
-								Scan Another
-							</button>
+							</div>
+
+							<!-- Actions -->
+							<div class="button-stack">
+								<button class="secondary-btn" on:click={handleScanFolder}>
+									Scan Another
+								</button>
 							<button class="secondary-btn" on:click={() => fileStore.clear()}>
 								Clear Workspace
 							</button>
