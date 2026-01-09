@@ -17,7 +17,6 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             // Create menu
-            let handle = app.handle();
             
             // App menu (macOS)
             let about = MenuItem::with_id(app, "about", "About Miktos Kosmos", true, None::<&str>)?;

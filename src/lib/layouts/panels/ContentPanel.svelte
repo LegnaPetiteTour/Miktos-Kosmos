@@ -14,6 +14,11 @@
 	let selectedIndex: number = -1;
 	let tableElement: HTMLDivElement;
 	
+	// View controls
+	type ViewMode = 'grid' | 'list' | 'details' | 'thumbnails';
+	let viewMode: ViewMode = 'details';
+	let itemSize: number = 50; // Size in pixels (for thumbnails/grid)
+	
 	// Extract folder name from path
 	$: folderName = currentPath.split('/').filter(Boolean).pop() || 'Computer';
 	
@@ -390,6 +395,308 @@
 		color: var(--text-muted);
 		text-align: center;
 	}
+	
+	.view-controls {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--space-2) var(--space-3);
+		background: var(--bg);
+		border-top: 1px solid var(--border);
+		gap: var(--space-3);
+	}
+
+	.view-modes {
+		display: flex;
+		gap: var(--space-1);
+	}
+
+	.view-mode-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		padding: 0;
+		background: transparent;
+		border: 1px solid transparent;
+		border-radius: 4px;
+		color: var(--text-muted);
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.view-mode-btn:hover {
+		background: var(--bg-subtle);
+		color: var(--text);
+	}
+
+	.view-mode-btn.active {
+		background: var(--accent);
+		color: white;
+		border-color: var(--accent);
+	}
+
+	.size-control {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+
+	.size-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 24px;
+		height: 24px;
+		padding: 0;
+		background: transparent;
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		color: var(--text-muted);
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.size-btn:hover {
+		background: var(--bg-subtle);
+		color: var(--text);
+		border-color: var(--text-muted);
+	}
+
+	.size-slider {
+		width: 100px;
+		height: 4px;
+		-webkit-appearance: none;
+		appearance: none;
+		background: var(--border);
+		border-radius: 2px;
+		outline: none;
+	}
+
+	.size-slider::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 14px;
+		height: 14px;
+		background: var(--accent);
+		border-radius: 50%;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.size-slider::-webkit-slider-thumb:hover {
+		transform: scale(1.2);
+	}
+
+	.size-slider::-moz-range-thumb {
+		width: 14px;
+		height: 14px;
+		background: var(--accent);
+		border: none;
+		border-radius: 50%;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.size-slider::-moz-range-thumb:hover {
+		transform: scale(1.2);
+	}
+
+	/* List View Styles */
+	.list-view {
+		flex: 1;
+		overflow-y: auto;
+		padding: var(--space-2);
+	}
+
+	.list-item {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-2) var(--space-3);
+		border-radius: 6px;
+		cursor: pointer;
+		transition: background 0.15s ease;
+	}
+
+	.list-item:hover {
+		background: var(--bg-subtle);
+	}
+
+	.list-item.selected {
+		background: var(--accent);
+		color: white;
+	}
+
+	.list-thumbnail, .list-icon {
+		width: 40px;
+		height: 40px;
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 6px;
+		overflow: hidden;
+		background: var(--bg-subtle);
+	}
+
+	.list-thumbnail img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.list-icon {
+		font-size: 24px;
+	}
+
+	.list-content {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.list-name {
+		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.list-meta {
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		margin-top: 2px;
+	}
+
+	.list-item.selected .list-meta {
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	/* Grid View Styles */
+	.grid-view {
+		flex: 1;
+		overflow-y: auto;
+		padding: var(--space-3);
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+		gap: var(--space-3);
+		align-content: start;
+	}
+
+	.grid-item {
+		display: flex;
+		flex-direction: column;
+		cursor: pointer;
+		border-radius: 8px;
+		overflow: hidden;
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.grid-item:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	}
+
+	.grid-item.selected {
+		box-shadow: 0 0 0 3px var(--accent);
+	}
+
+	.grid-preview {
+		width: 100%;
+		background: var(--bg-subtle);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+	}
+
+	.grid-preview img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.grid-icon {
+		color: var(--text-muted);
+	}
+
+	.grid-name {
+		padding: var(--space-2);
+		font-size: var(--text-xs);
+		text-align: center;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		background: var(--panel);
+	}
+
+	.grid-item.selected .grid-name {
+		background: var(--accent);
+		color: white;
+	}
+
+	/* Thumbnails View Styles */
+	.thumbnails-view {
+		flex: 1;
+		overflow-y: auto;
+		padding: var(--space-3);
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+		gap: var(--space-2);
+		align-content: start;
+	}
+
+	.thumbnail-item {
+		display: flex;
+		flex-direction: column;
+		cursor: pointer;
+		border-radius: 6px;
+		overflow: hidden;
+		transition: transform 0.15s ease;
+	}
+
+	.thumbnail-item:hover {
+		transform: scale(1.05);
+	}
+
+	.thumbnail-item.selected {
+		box-shadow: 0 0 0 2px var(--accent);
+	}
+
+	.thumbnail-preview {
+		width: 100%;
+		background: var(--bg-subtle);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+	}
+
+	.thumbnail-preview img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.thumbnail-icon {
+		color: var(--text-muted);
+	}
+
+	.thumbnail-name {
+		padding: var(--space-1);
+		font-size: 10px;
+		text-align: center;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		background: var(--panel);
+	}
+
+	.thumbnail-item.selected .thumbnail-name {
+		background: var(--accent);
+		color: white;
+	}
 </style>
 
 <div class="content-panel">
@@ -407,44 +714,189 @@
 				This folder is empty
 			</div>
 		{:else}
-			<div class="content-table-wrapper" bind:this={tableElement}>
-				<table class="content-table">
-					<thead>
-						<tr>
-							<th style="width: 40%;">Name</th>
-							<th style="width: 25%;">Date Modified</th>
-							<th style="width: 15%;">Size</th>
-							<th style="width: 20%;">Type</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each sortedFiles as file, index}
-							<tr 
-								class:selected={index === selectedIndex}
-								on:click={() => selectFile(file, index)}
-							>
-								<td>
-									<div class="file-name">
-										{#if isImageFile(file)}
-											<div class="file-thumbnail">
-												<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" />
-											</div>
-										{:else}
-											<span class="file-icon">{getFileIcon(file)}</span>
-										{/if}
-										<span>{file.name}</span>
-									</div>
-								</td>
-								<td>{formatDate(file.modified || file.created)}</td>
-								<td>{file.is_dir ? '--' : formatSize(file.size)}</td>
-								<td>{getFileType(file)}</td>
+			{#if viewMode === 'details'}
+				<div class="content-table-wrapper" bind:this={tableElement}>
+					<table class="content-table">
+						<thead>
+							<tr>
+								<th style="width: 40%;">Name</th>
+								<th style="width: 25%;">Date Modified</th>
+								<th style="width: 15%;">Size</th>
+								<th style="width: 20%;">Type</th>
 							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-			<div class="keyboard-hint">
-				↑↓ Navigate & Preview • Enter Open Folder • Backspace Go Up • Home/End Jump
+						</thead>
+						<tbody>
+							{#each sortedFiles as file, index}
+								<tr 
+									class:selected={index === selectedIndex}
+									on:click={() => selectFile(file, index)}
+								>
+									<td>
+										<div class="file-name">
+											{#if isImageFile(file)}
+												<div class="file-thumbnail">
+													<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" />
+												</div>
+											{:else}
+												<span class="file-icon">{getFileIcon(file)}</span>
+											{/if}
+											<span>{file.name}</span>
+										</div>
+									</td>
+									<td>{formatDate(file.modified || file.created)}</td>
+									<td>{file.is_dir ? '--' : formatSize(file.size)}</td>
+									<td>{getFileType(file)}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{:else if viewMode === 'list'}
+				<div class="list-view" bind:this={tableElement}>
+					{#each sortedFiles as file, index}
+						<div 
+							class="list-item"
+							class:selected={index === selectedIndex}
+							on:click={() => selectFile(file, index)}
+						>
+							{#if isImageFile(file)}
+								<div class="list-thumbnail">
+									<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" />
+								</div>
+							{:else}
+								<span class="list-icon">{getFileIcon(file)}</span>
+							{/if}
+							<div class="list-content">
+								<div class="list-name">{file.name}</div>
+								<div class="list-meta">
+									{formatDate(file.modified || file.created)} • {file.is_dir ? 'Folder' : formatSize(file.size)}
+								</div>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{:else if viewMode === 'grid'}
+				<div class="grid-view" bind:this={tableElement}>
+					{#each sortedFiles as file, index}
+						<div 
+							class="grid-item"
+							class:selected={index === selectedIndex}
+							on:click={() => selectFile(file, index)}
+							style="width: {itemSize * 2}px;"
+						>
+							<div class="grid-preview" style="height: {itemSize * 2}px;">
+								{#if isImageFile(file)}
+									<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" />
+								{:else}
+									<span class="grid-icon" style="font-size: {itemSize}px;">{getFileIcon(file)}</span>
+								{/if}
+							</div>
+							<div class="grid-name">{file.name}</div>
+						</div>
+					{/each}
+				</div>
+			{:else if viewMode === 'thumbnails'}
+				<div class="thumbnails-view" bind:this={tableElement}>
+					{#each sortedFiles as file, index}
+						<div 
+							class="thumbnail-item"
+							class:selected={index === selectedIndex}
+							on:click={() => selectFile(file, index)}
+							style="width: {itemSize}px;"
+						>
+							<div class="thumbnail-preview" style="height: {itemSize}px;">
+								{#if isImageFile(file)}
+									<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" />
+								{:else}
+									<span class="thumbnail-icon" style="font-size: {itemSize * 0.5}px;">{getFileIcon(file)}</span>
+								{/if}
+							</div>
+							<div class="thumbnail-name">{file.name}</div>
+						</div>
+					{/each}
+				</div>
+			{/if}
+			<div class="view-controls">
+				<div class="view-modes">
+					<button 
+						class="view-mode-btn" 
+						class:active={viewMode === 'grid'}
+						on:click={() => viewMode = 'grid'}
+						title="Grid view"
+					>
+						<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+							<rect x="1" y="1" width="6" height="6" rx="1"/>
+							<rect x="9" y="1" width="6" height="6" rx="1"/>
+							<rect x="1" y="9" width="6" height="6" rx="1"/>
+							<rect x="9" y="9" width="6" height="6" rx="1"/>
+						</svg>
+					</button>
+					<button 
+						class="view-mode-btn" 
+						class:active={viewMode === 'thumbnails'}
+						on:click={() => viewMode = 'thumbnails'}
+						title="Thumbnails view"
+					>
+						<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+							<rect x="1" y="1" width="4" height="4" rx="0.5"/>
+							<rect x="6" y="1" width="4" height="4" rx="0.5"/>
+							<rect x="11" y="1" width="4" height="4" rx="0.5"/>
+							<rect x="1" y="6" width="4" height="4" rx="0.5"/>
+							<rect x="6" y="6" width="4" height="4" rx="0.5"/>
+							<rect x="11" y="6" width="4" height="4" rx="0.5"/>
+							<rect x="1" y="11" width="4" height="4" rx="0.5"/>
+							<rect x="6" y="11" width="4" height="4" rx="0.5"/>
+							<rect x="11" y="11" width="4" height="4" rx="0.5"/>
+						</svg>
+					</button>
+					<button 
+						class="view-mode-btn" 
+						class:active={viewMode === 'details'}
+						on:click={() => viewMode = 'details'}
+						title="Details view"
+					>
+						<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+							<rect x="1" y="2" width="14" height="2" rx="1"/>
+							<rect x="1" y="7" width="14" height="2" rx="1"/>
+							<rect x="1" y="12" width="14" height="2" rx="1"/>
+						</svg>
+					</button>
+					<button 
+						class="view-mode-btn" 
+						class:active={viewMode === 'list'}
+						on:click={() => viewMode = 'list'}
+						title="List view"
+					>
+						<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+							<rect x="1" y="2" width="2" height="2" rx="0.5"/>
+							<rect x="5" y="2" width="10" height="2" rx="1"/>
+							<rect x="1" y="7" width="2" height="2" rx="0.5"/>
+							<rect x="5" y="7" width="10" height="2" rx="1"/>
+							<rect x="1" y="12" width="2" height="2" rx="0.5"/>
+							<rect x="5" y="12" width="10" height="2" rx="1"/>
+						</svg>
+					</button>
+				</div>
+				
+				<div class="size-control">
+					<button class="size-btn" on:click={() => itemSize = Math.max(30, itemSize - 10)}>
+						<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+							<path d="M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+						</svg>
+					</button>
+					<input 
+						type="range" 
+						min="30" 
+						max="200" 
+						bind:value={itemSize}
+						class="size-slider"
+					/>
+					<button class="size-btn" on:click={() => itemSize = Math.min(200, itemSize + 10)}>
+						<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+							<path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+						</svg>
+					</button>
+				</div>
 			</div>
 		{/if}
 	</div>

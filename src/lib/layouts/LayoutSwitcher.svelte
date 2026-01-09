@@ -22,10 +22,11 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--space-2);
-		padding: var(--space-3) var(--space-5);
+		padding: var(--space-4) var(--space-3);
 		background-color: var(--panel);
 		border-bottom: 1px solid var(--panel-border);
-		height: 48px;
+		height: 56px;
+		box-sizing: border-box;
 	}
 	
 	.layout-section {

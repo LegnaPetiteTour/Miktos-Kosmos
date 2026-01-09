@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ThemeToggle from '../components/ThemeToggle.svelte';
 	import FolderTree from '../components/FolderTree.svelte';
 	import { folderAccessStore } from '$lib/stores/folderAccessStore';
 	import { currentFolderStore } from '$lib/stores/currentFolderStore';
@@ -165,9 +164,13 @@
 	}
 	
 	.sidebar-brand {
-		padding: var(--space-5);
+		padding: var(--space-4) var(--space-3);
 		border-bottom: 1px solid var(--panel-border);
 		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		height: 56px;
+		box-sizing: border-box;
 	}
 	
 	.sidebar-title {
@@ -289,12 +292,6 @@
 		font-size: var(--text-sm);
 		line-height: 1.6;
 	}
-	
-	.sidebar-footer {
-		padding: var(--space-3);
-		border-top: 1px solid var(--panel-border);
-		flex-shrink: 0;
-	}
 </style>
 
 <aside class="sidebar">
@@ -391,9 +388,5 @@
 				{/if}
 			{/if}
 		</div>
-	</div>
-	
-	<div class="sidebar-footer">
-		<ThemeToggle />
 	</div>
 </aside>

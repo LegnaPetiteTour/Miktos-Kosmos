@@ -5,6 +5,7 @@
 	import { operationsStore } from '$lib/stores/operationsStore';
 	import type { HistoryEntry } from '$lib/stores/historyStore';
 	import type { OperationResult } from '$lib/types';
+	import ThemeToggle from '$lib/ui/components/ThemeToggle.svelte';
 	import { invoke } from '@tauri-apps/api/core';
 	import { open } from '@tauri-apps/plugin-dialog';
 	import { listen } from '@tauri-apps/api/event';
@@ -224,10 +225,16 @@
 		height: 100%;
 		display: flex;
 		flex-direction: column;
-		background: #1a1a1a;
-		color: #e0e0e0;
+		background: var(--panel);
+		color: var(--text);
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 		overflow: hidden;
+	}
+	
+	/* Theme Toggle Container */
+	.theme-toggle-container {
+		border-bottom: 1px solid var(--panel-border);
+		flex-shrink: 0;
 	}
 	
 	/* Scrollable content */
@@ -246,17 +253,17 @@
 	}
 	
 	.panel-content::-webkit-scrollbar-thumb {
-		background: #3a3a3a;
+		background: var(--bg-subtle);
 		border-radius: 4px;
 	}
 	
 	.panel-content::-webkit-scrollbar-thumb:hover {
-		background: #4a4a4a;
+		background: var(--border);
 	}
 	
 	/* Section */
 	.section {
-		border-bottom: 1px solid #2a2a2a;
+		border-bottom: 1px solid var(--panel-border);
 	}
 	
 	.section:last-child {
@@ -271,18 +278,18 @@
 		cursor: pointer;
 		user-select: none;
 		transition: background 0.15s ease;
-		background: #1a1a1a;
+		background: var(--panel);
 		border: none;
 		width: 100%;
 		text-align: left;
 	}
 	
 	.section-header:hover {
-		background: #222;
+		background: var(--bg-subtle);
 	}
 	
 	.section-header.active {
-		background: #242424;
+		background: var(--bg);
 	}
 	
 	.section-title-group {
@@ -296,13 +303,13 @@
 	.section-title {
 		font-size: 14px;
 		font-weight: 500;
-		color: #e0e0e0;
+		color: var(--text);
 		margin: 0;
 	}
 	
 	.section-chevron {
 		font-size: 10px;
-		color: #707070;
+		color: var(--text-muted);
 		transition: transform 0.2s ease;
 	}
 	
@@ -313,7 +320,7 @@
 	/* Section Content */
 	.section-body {
 		padding: 16px 20px 20px 20px;
-		background: #1e1e1e;
+		background: var(--bg);
 	}
 	
 	/* Primary Button */
@@ -370,15 +377,15 @@
 	.loading-state {
 		margin-top: 16px;
 		padding: 16px;
-		background: #242424;
+		background: var(--bg);
 		border-radius: 8px;
-		border: 1px solid #3a3a3a;
+		border: 1px solid var(--border);
 	}
 	
 	.loading-bar {
 		width: 100%;
 		height: 4px;
-		background: #3a3a3a;
+		background: var(--bg-subtle);
 		border-radius: 2px;
 		overflow: hidden;
 		margin-bottom: 12px;
@@ -400,7 +407,7 @@
 	.loading-text {
 		margin: 0;
 		font-size: 12px;
-		color: #a0a0a0;
+		color: var(--text-muted);
 		text-align: center;
 	}
 	
@@ -413,7 +420,7 @@
 	
 	.loading-count {
 		font-size: 13px;
-		color: #d0d0d0;
+		color: var(--text);
 		font-weight: 500;
 		font-variant-numeric: tabular-nums;
 	}
@@ -428,7 +435,7 @@
 	.loading-file {
 		margin: 0;
 		font-size: 11px;
-		color: #707070;
+		color: var(--text-muted);
 		text-align: left;
 		font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 		white-space: nowrap;
@@ -440,9 +447,9 @@
 	.secondary-btn {
 		width: 100%;
 		padding: 10px 16px;
-		background: #262626;
-		color: #e0e0e0;
-		border: 1px solid #3a3a3a;
+		background: var(--bg);
+		color: var(--text);
+		border: 1px solid var(--border);
 		border-radius: 6px;
 		font-size: 13px;
 		font-weight: 500;
@@ -455,8 +462,8 @@
 	}
 	
 	.secondary-btn:hover {
-		background: #2a2a2a;
-		border-color: #4a4a4a;
+		background: var(--bg-subtle);
+		border-color: var(--border);
 	}
 	
 	.secondary-btn:disabled {
@@ -479,7 +486,7 @@
 		gap: 8px;
 		margin-bottom: 12px;
 		padding-bottom: 8px;
-		border-bottom: 1px solid #2a2a2a;
+		border-bottom: 1px solid var(--panel-border);
 	}
 	
 
@@ -487,7 +494,7 @@
 	.stats-header-title {
 		font-size: 12px;
 		font-weight: 600;
-		color: #a0a0a0;
+		color: var(--text-muted);
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
 	}
@@ -506,23 +513,23 @@
 		flex-direction: column;
 		gap: 4px;
 		padding: 12px;
-		background: #242424;
+		background: var(--bg);
 		border-radius: 6px;
 		margin-bottom: 12px;
-		border-left: 3px solid #3b82f6;
+		border-left: 3px solid var(--accent);
 	}
 	
 	.path-label {
 		font-size: 11px;
 		font-weight: 600;
-		color: #707070;
+		color: var(--text-muted);
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
 	}
 	
 	.path-value {
 		font-size: 12px;
-		color: #d0d0d0;
+		color: var(--text);
 		font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 		word-break: break-all;
 		line-height: 1.5;
@@ -530,7 +537,7 @@
 	
 	.stat-label {
 		font-size: 13px;
-		color: #909090;
+		color: var(--text-muted);
 		display: flex;
 		align-items: center;
 		gap: 6px;
@@ -539,13 +546,13 @@
 	.stat-value {
 		font-size: 13px;
 		font-weight: 500;
-		color: #e0e0e0;
+		color: var(--text);
 		font-variant-numeric: tabular-nums;
 	}
 	
 	.stat-meta {
 		font-size: 12px;
-		color: #707070;
+		color: var(--text-muted);
 		margin-left: 6px;
 	}
 	
@@ -557,7 +564,7 @@
 	
 	.empty-text {
 		font-size: 13px;
-		color: #707070;
+		color: var(--text-muted);
 		line-height: 1.5;
 	}
 	
@@ -581,7 +588,7 @@
 	.setting-label {
 		font-size: 12px;
 		font-weight: 600;
-		color: #a0a0a0;
+		color: var(--text-muted);
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
 		margin-bottom: 10px;
@@ -629,90 +636,19 @@
 	}
 	
 	/* History */
-	.history-list {
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
+	.history-divider {
+		height: 1px;
+		background: var(--panel-border);
+		margin: 12px 0;
 	}
 	
-	.history-item {
-		padding: 12px;
-		background: #242424;
-		border-radius: 6px;
-		border-left: 3px solid #3b82f6;
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
-	
-	.history-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 8px;
-		margin-bottom: 4px;
-	}
-	
-	.history-icon {
-		font-size: 14px;
-		font-weight: bold;
-	}
-	
-	.history-date {
-		font-size: 11px;
-		color: #909090;
-	}
-	
-	.history-path {
-		font-size: 11px;
-		color: #707070;
+	.history-folder {
 		font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+		font-size: 12px;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		padding: 6px 8px;
-		background: rgba(0, 0, 0, 0.3);
-		border-radius: 4px;
-	}
-	
-	.history-stats {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		margin-top: 4px;
-	}
-	
-	/* Operations */
-	.operation-item {
-		border-left-color: var(--success);
-	}
-	
-	.operation-item.failed {
-		border-left-color: var(--danger);
-	}
-	
-	.operation-status {
-		font-size: 14px;
-		font-weight: bold;
-		color: var(--success);
-	}
-	
-	.operation-item.failed .operation-status {
-		color: var(--danger);
-	}
-	
-	.operation-stats {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-	}
-	
-	.stat-success {
-		color: var(--success) !important;
-	}
-	
-	.stat-failed {
-		color: var(--danger) !important;
+		max-width: 180px;
 	}
 	
 	/* Spacing utilities */
@@ -721,6 +657,11 @@
 </style>
 
 <div class="tools-panel">
+	<!-- Theme Toggle at Top -->
+	<div class="theme-toggle-container">
+		<ThemeToggle />
+	</div>
+	
 	<!-- Scrollable Content -->
 	<div class="panel-content">
 		<!-- WORKSPACE -->
@@ -1131,48 +1072,50 @@
 							<p class="empty-text">No workspace history yet.<br/>Scan a folder to begin.</p>
 						</div>
 					{:else}
-						<div class="history-list">
-							{#each history as entry}
-								<div class="history-item" style="border-left-color: {getStatusColor(entry.status)}">
-									<div class="history-header">
-										<span class="history-icon" style="color: {getStatusColor(entry.status)}">
-											{getStatusIcon(entry.status)}
-										</span>
-										<span class="history-date">{formatDate(entry.timestamp)}</span>
-									</div>
-									
-									<div class="history-path" title={entry.folder_path}>
-										{entry.folder_path}
-									</div>
-									
-									<div class="history-stats">
-										<div class="stat-row">
-											<span class="stat-label">📁 Files</span>
-											<span class="stat-value">{entry.total_files}</span>
-										</div>
-										<div class="stat-row">
-											<span class="stat-label">💾 Size</span>
-											<span class="stat-value">{formatBytes(entry.total_size)}</span>
-										</div>
-										<div class="stat-row">
-											<span class="stat-label">📅 Date Range</span>
-											<span class="stat-value">{formatDateRange(entry.date_range_start, entry.date_range_end)}</span>
-										</div>
-										{#if entry.errors > 0 || entry.warnings > 0}
-											<div class="stat-row">
-												<span class="stat-label" style="color: var(--danger)">⚠ Issues</span>
-												<span class="stat-value" style="color: var(--danger)">{entry.errors} errors, {entry.warnings} warnings</span>
-											</div>
-										{:else}
-											<div class="stat-row">
-												<span class="stat-label" style="color: var(--success)">✓ Status</span>
-												<span class="stat-value" style="color: var(--success)">No errors</span>
-											</div>
-										{/if}
-									</div>
+						{#each history as entry, index}
+							{#if index > 0}
+								<div class="history-divider"></div>
+							{/if}
+							
+							<div class="stat-row">
+								<span class="stat-label">Scanned</span>
+								<span class="stat-value">{formatDate(entry.timestamp)}</span>
+							</div>
+							
+							<div class="stat-row">
+								<span class="stat-label">Folder</span>
+								<span class="stat-value history-folder" title={entry.folder_path}>
+									{formatPath(entry.folder_path)}
+								</span>
+							</div>
+							
+							<div class="stat-row">
+								<span class="stat-label">Files</span>
+								<span class="stat-value">{entry.total_files}</span>
+							</div>
+							
+							<div class="stat-row">
+								<span class="stat-label">Size</span>
+								<span class="stat-value">{formatBytes(entry.total_size)}</span>
+							</div>
+							
+							<div class="stat-row">
+								<span class="stat-label">Date Range</span>
+								<span class="stat-value">{formatDateRange(entry.date_range_start, entry.date_range_end)}</span>
+							</div>
+							
+							{#if entry.errors > 0 || entry.warnings > 0}
+								<div class="stat-row">
+									<span class="stat-label">Issues</span>
+									<span class="stat-value" style="color: var(--danger)">{entry.errors} errors, {entry.warnings} warnings</span>
 								</div>
-							{/each}
-						</div>
+							{:else}
+								<div class="stat-row">
+									<span class="stat-label">Status</span>
+									<span class="stat-value" style="color: var(--success)">No errors</span>
+								</div>
+							{/if}
+						{/each}
 					{/if}
 				</div>
 			{/if}
@@ -1198,36 +1141,43 @@
 							<p class="empty-text">No operations yet.<br/>Use tools to process files.</p>
 						</div>
 					{:else}
-						<div class="history-list">
-							{#each operations as operation, index}
-								<div class="history-item operation-item" class:failed={!operation.success}>
-									<div class="history-header">
-										<span class="operation-status">{operation.success ? '✓' : '⚠'}</span>
-										<span class="history-date">Operation #{operations.length - index}</span>
-									</div>
-									
-									<div class="stat-row">
-										<span class="stat-label">Time</span>
-										<span class="stat-value">{formatDate(operation.timestamp)}</span>
-									</div>
-									
-									<div class="operation-stats">
-										<div class="stat-row">
-											<span class="stat-label stat-success">✓ Success</span>
-											<span class="stat-value">{operation.successful_count}</span>
-										</div>
-										<div class="stat-row">
-											<span class="stat-label stat-failed">✕ Failed</span>
-											<span class="stat-value">{operation.failed_count}</span>
-										</div>
-										<div class="stat-row">
-											<span class="stat-label">⏱ Duration</span>
-											<span class="stat-value">{(operation.duration_ms / 1000).toFixed(2)}s</span>
-										</div>
-									</div>
-								</div>
-							{/each}
-						</div>
+						{#each operations as operation, index}
+							{#if index > 0}
+								<div class="history-divider"></div>
+							{/if}
+							
+							<div class="stat-row">
+								<span class="stat-label">Operation</span>
+								<span class="stat-value">#{operations.length - index}</span>
+							</div>
+							
+							<div class="stat-row">
+								<span class="stat-label">Time</span>
+								<span class="stat-value">{formatDate(operation.timestamp)}</span>
+							</div>
+							
+							<div class="stat-row">
+								<span class="stat-label">Success</span>
+								<span class="stat-value" style="color: var(--success)">{operation.successful_count}</span>
+							</div>
+							
+							<div class="stat-row">
+								<span class="stat-label">Failed</span>
+								<span class="stat-value" style="color: var(--danger)">{operation.failed_count}</span>
+							</div>
+							
+							<div class="stat-row">
+								<span class="stat-label">Duration</span>
+								<span class="stat-value">{(operation.duration_ms / 1000).toFixed(2)}s</span>
+							</div>
+							
+							<div class="stat-row">
+								<span class="stat-label">Status</span>
+								<span class="stat-value" style="color: {operation.success ? 'var(--success)' : 'var(--danger)'}">
+									{operation.success ? 'Completed' : 'Failed'}
+								</span>
+							</div>
+						{/each}
 					{/if}
 				</div>
 			{/if}
