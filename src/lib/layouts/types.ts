@@ -1,6 +1,6 @@
 // Layout System Types for Workspace
 
-export type LayoutId = 'essentials' | 'transform' | 'review' | 'analyze';
+export type LayoutId = 'browser' | 'transform' | 'review' | 'analyze';
 
 export type PanelId = 'folders' | 'files' | 'preview' | 'metadata' | 'tools' | 'history';
 
@@ -28,10 +28,10 @@ export interface LayoutConfig {
 
 // Predefined layouts
 export const LAYOUTS: Record<LayoutId, LayoutConfig> = {
-	essentials: {
-		id: 'essentials',
-		name: 'Essentials',
-		description: 'Balanced view for browsing and organizing',
+	browser: {
+		id: 'browser',
+		name: 'Browser',
+		description: 'Browse and explore your photo library',
 		icon: '⊞',
 		panels: {
 			left: [

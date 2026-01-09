@@ -6,6 +6,7 @@
 	import { fileStore } from '$lib/stores/photoStore';
 	import { themeStore } from '$lib/stores/themeStore';
 	import { icons } from '$lib/ui/icons';
+	import { listen } from '@tauri-apps/api/event';
 	import AppShell from '$lib/ui/layout/AppShell.svelte';
 	import '../app.css';
 	
@@ -25,6 +26,11 @@
 	let selectedNavId: string = 'home';
 	let workspaceLabel: string | undefined = undefined;
 	let scanResult: any = null;
+	
+	// Dialogs
+	let showAboutDialog = false;
+	let showSettingsDialog = false;
+	let showLearnDialog = false;
 	
 	// Subscribe to file store to get workspace info
 	fileStore.subscribe(value => {
@@ -56,10 +62,30 @@
 		}
 	}
 	
-	onMount(() => {
+	onMount(async () => {
 		// Initialize theme
 		themeStore.initialize();
+		
+		// Listen for menu events from Tauri
+		const unlistenAbout = await listen('show-about', () => {
+			showAboutDialog = true;
+		});
+		
+		const unlistenSettings = await listen('show-settings', () => {
+			showSettingsDialog = true;
+		});
+		
+		const unlistenLearn = await listen('show-learn', () => {
+			showLearnDialog = true;
+		});
+		
 		console.log('Command Center initialized');
+		
+		return () => {
+			unlistenAbout();
+			unlistenSettings();
+			unlistenLearn();
+		};
 	});
 </script>
 
@@ -72,3 +98,101 @@
 >
 	<slot />
 </AppShell>
+
+<!-- Simple Dialog Overlays -->
+{#if showAboutDialog}
+	<div class="dialog-overlay" on:click={() => showAboutDialog = false}>
+		<div class="dialog-content" on:click|stopPropagation>
+			<h2>About Miktos Kosmos</h2>
+			<p class="version">Version 0.3.0 Alpha</p>
+			<p>Privacy-first family photo organizer.</p>
+			<p>Transform 10 years of digital chaos into a beautifully organized family archive.</p>
+			<p class="copyright">Copyright © 2025 Angel Torrella</p>
+			<button class="dialog-close" on:click={() => showAboutDialog = false}>Close</button>
+		</div>
+	</div>
+{/if}
+
+{#if showSettingsDialog}
+	<div class="dialog-overlay" on:click={() => showSettingsDialog = false}>
+		<div class="dialog-content" on:click|stopPropagation>
+			<h2>Settings</h2>
+			<p>Settings panel coming soon...</p>
+			<button class="dialog-close" on:click={() => showSettingsDialog = false}>Close</button>
+		</div>
+	</div>
+{/if}
+
+{#if showLearnDialog}
+	<div class="dialog-overlay" on:click={() => showLearnDialog = false}>
+		<div class="dialog-content" on:click|stopPropagation>
+			<h2>Learn Miktos Kosmos</h2>
+			<p>Learning resources coming soon...</p>
+			<button class="dialog-close" on:click={() => showLearnDialog = false}>Close</button>
+		</div>
+	</div>
+{/if}
+
+<style>
+	.dialog-overlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(8px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+	}
+	
+	.dialog-content {
+		background: var(--panel);
+		border: 1px solid var(--panel-border);
+		border-radius: 12px;
+		padding: 32px;
+		max-width: 500px;
+		width: 90%;
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+	}
+	
+	.dialog-content h2 {
+		margin: 0 0 16px 0;
+		font-size: 24px;
+		color: var(--text);
+	}
+	
+	.dialog-content p {
+		margin: 12px 0;
+		color: var(--text-muted);
+		line-height: 1.6;
+	}
+	
+	.version {
+		font-size: 14px;
+		color: var(--text-subtle);
+		margin-bottom: 24px;
+	}
+	
+	.copyright {
+		font-size: 12px;
+		color: var(--text-subtle);
+		margin-top: 24px;
+	}
+	
+	.dialog-close {
+		margin-top: 24px;
+		padding: 10px 24px;
+		background: var(--accent);
+		color: white;
+		border: none;
+		border-radius: 6px;
+		cursor: pointer;
+		font-weight: 500;
+		transition: all 0.2s;
+	}
+	
+	.dialog-close:hover {
+		background: var(--accent-hover);
+		transform: translateY(-1px);
+	}
+</style>

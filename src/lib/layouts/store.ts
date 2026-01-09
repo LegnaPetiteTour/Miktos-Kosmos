@@ -3,7 +3,7 @@ import type { LayoutId, LayoutConfig } from './types';
 import { LAYOUTS } from './types';
 
 function createLayoutStore() {
-	const { subscribe, set, update } = writable<LayoutConfig>(LAYOUTS.essentials);
+	const { subscribe, set, update } = writable<LayoutConfig>(LAYOUTS.browser);
 	
 	return {
 		subscribe,
