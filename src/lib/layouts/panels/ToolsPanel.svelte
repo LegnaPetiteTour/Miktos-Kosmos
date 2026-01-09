@@ -656,7 +656,7 @@
 					{/if}
 					
 					{#if scanStats}
-						<!-- Scan Summary -->
+						<!-- Consolidated Summary -->
 						<div class="stats-group mt-16">
 							<div class="stats-header">
 								<span class="stats-header-title">Summary</span>
@@ -672,6 +672,7 @@
 								</div>
 							{/if}
 							
+							<!-- Basic Stats -->
 							<div class="stat-row">
 								<span class="stat-label">Total Files</span>
 								<span class="stat-value">{formatNumber(scanStats.total_files)}</span>
@@ -688,142 +689,119 @@
 									<span class="stat-value">{formatDateRange(scanStats.date_range)}</span>
 								</div>
 							{/if}
-						</div>
-						
-						<!-- File Types -->
-						{#if Object.values(scanStats.file_types).some(count => count > 0)}
-							<div class="stats-group">
-								<div class="stats-header">
-									<span class="stats-header-title">File Types</span>
-								</div>
-								
-								{#each Object.entries(scanStats.file_types) as [type, count]}
-									{#if count > 0}
+							
+							<!-- File Types (inline) -->
+							{#each Object.entries(scanStats.file_types) as [type, count]}
+								{#if count > 0}
+									<div class="stat-row">
+										<span class="stat-label">{type.charAt(0).toUpperCase() + type.slice(1)}</span>
+										<span class="stat-value">{formatNumber(count)}</span>
+									</div>
+								{/if}
+							{/each}
+							
+							<!-- Quality Metrics (inline, only show if > 0) -->
+							{#if scanStats.quality}
+							{#if scanStats.quality.duplicates > 0}
+							<div class="stat-row">
+							 <span class="stat-label">Duplicates</span>
+							<span class="stat-value">
+							 {formatNumber(scanStats.quality.duplicates)}
+							<span class="stat-meta">
+							  ({((scanStats.quality.duplicates / scanStats.total_files) * 100).toFixed(1)}%)
+							  </span>
+							  </span>
+							  </div>
+							 {/if}
+							 
+							{#if scanStats.quality.screenshots > 0}
+							<div class="stat-row">
+							 <span class="stat-label">Screenshots</span>
+							<span class="stat-value">
+							 {formatNumber(scanStats.quality.screenshots)}
+							<span class="stat-meta">
+							  ({((scanStats.quality.screenshots / scanStats.total_files) * 100).toFixed(1)}%)
+							  </span>
+							  </span>
+							  </div>
+									{/if}
+									
+									{#if scanStats.quality.low_resolution > 0}
 										<div class="stat-row">
-											<span class="stat-label">{type.charAt(0).toUpperCase() + type.slice(1)}</span>
-											<span class="stat-value">{formatNumber(count)}</span>
+											<span class="stat-label">Low Resolution</span>
+											<span class="stat-value">
+												{formatNumber(scanStats.quality.low_resolution)}
+												<span class="stat-meta">
+													({((scanStats.quality.low_resolution / scanStats.file_types.images) * 100).toFixed(1)}%)
+												</span>
+											</span>
 										</div>
 									{/if}
-								{/each}
-							</div>
-						{/if}
+									
+									{#if scanStats.quality.small_files > 0}
+										<div class="stat-row">
+											<span class="stat-label">Small Files</span>
+											<span class="stat-value">
+												{formatNumber(scanStats.quality.small_files)}
+												<span class="stat-meta">
+													({((scanStats.quality.small_files / scanStats.file_types.images) * 100).toFixed(1)}%)
+												</span>
+											</span>
+										</div>
+									{/if}
+									
+									{#if scanStats.quality.missing_metadata > 0}
+										<div class="stat-row">
+											<span class="stat-label">Missing Date</span>
+											<span class="stat-value">
+												{formatNumber(scanStats.quality.missing_metadata)}
+												<span class="stat-meta">
+													({((scanStats.quality.missing_metadata / scanStats.file_types.images) * 100).toFixed(1)}%)
+												</span>
+											</span>
+										</div>
+									{/if}
+									
+									{#if scanStats.quality.potential_memes > 0}
+										<div class="stat-row">
+											<span class="stat-label">Potential Memes</span>
+											<span class="stat-value">
+												{formatNumber(scanStats.quality.potential_memes)}
+												<span class="stat-meta">
+													({((scanStats.quality.potential_memes / scanStats.total_files) * 100).toFixed(1)}%)
+												</span>
+											</span>
+										</div>
+									{/if}
+								{:else}
+									<!-- Fallback for old format (deprecated fields) -->
+									{#if scanStats.duplicates > 0}
+										<div class="stat-row">
+											<span class="stat-label">Duplicates</span>
+											<span class="stat-value">
+												{formatNumber(scanStats.duplicates)}
+												<span class="stat-meta">
+													({((scanStats.duplicates / scanStats.total_files) * 100).toFixed(1)}%)
+												</span>
+											</span>
+										</div>
+									{/if}
+									
+									{#if scanStats.screenshots > 0}
+										<div class="stat-row">
+											<span class="stat-label">Screenshots</span>
+											<span class="stat-value">
+												{formatNumber(scanStats.screenshots)}
+												<span class="stat-meta">
+													({((scanStats.screenshots / scanStats.total_files) * 100).toFixed(1)}%)
+												</span>
+											</span>
+										</div>
+									{/if}
+								{/if}
+						</div>
 						
-						<!-- Quality -->
-						<div class="stats-group">
-							<div class="stats-header">
-								<span class="stats-header-title">Quality</span>
-							</div>
-							
-                                                        {#if scanStats.quality}
-                                                                {#if scanStats.quality.screenshots > 0}
-                                                                        <div class="stat-row">
-                                                                                <span class="stat-label">📱 Screenshots</span>
-                                                                                <span class="stat-value">
-                                                                                        {formatNumber(scanStats.quality.screenshots)} 
-                                                                                        <span class="stat-meta">
-                                                                                                ({((scanStats.quality.screenshots / scanStats.total_files) * 100).toFixed(1)}%)
-                                                                                        </span>
-                                                                                </span>
-                                                                        </div>
-                                                                {/if}
-
-                                                                {#if scanStats.quality.duplicates > 0}
-                                                                        <div class="stat-row">
-                                                                                <span class="stat-label">🔄 Duplicates</span>
-                                                                                <span class="stat-value">
-                                                                                        {formatNumber(scanStats.quality.duplicates)}
-                                                                                        <span class="stat-meta">
-                                                                                                ({((scanStats.quality.duplicates / scanStats.total_files) * 100).toFixed(1)}%)
-                                                                                        </span>
-                                                                                </span>
-                                                                        </div>
-                                                                {/if}
-
-                                                                {#if scanStats.quality.low_resolution > 0}
-                                                                        <div class="stat-row">
-                                                                                <span class="stat-label">📉 Low Resolution</span>
-                                                                                <span class="stat-value">
-                                                                                        {formatNumber(scanStats.quality.low_resolution)}
-                                                                                        <span class="stat-meta">
-                                                                                                ({((scanStats.quality.low_resolution / scanStats.file_types.images) * 100).toFixed(1)}%)
-                                                                                        </span>
-                                                                                </span>
-                                                                        </div>
-                                                                {/if}
-
-                                                                {#if scanStats.quality.small_files > 0}
-                                                                        <div class="stat-row">
-                                                                                <span class="stat-label">💾 Small Files</span>
-                                                                                <span class="stat-value">
-                                                                                        {formatNumber(scanStats.quality.small_files)}
-                                                                                        <span class="stat-meta">
-                                                                                                ({((scanStats.quality.small_files / scanStats.file_types.images) * 100).toFixed(1)}%)
-                                                                                        </span>
-                                                                                </span>
-                                                                        </div>
-                                                                {/if}
-
-                                                                {#if scanStats.quality.missing_metadata > 0}
-                                                                        <div class="stat-row">
-                                                                                <span class="stat-label">📅 Missing Date</span>
-                                                                                <span class="stat-value">
-                                                                                        {formatNumber(scanStats.quality.missing_metadata)}
-                                                                                        <span class="stat-meta">
-                                                                                                ({((scanStats.quality.missing_metadata / scanStats.file_types.images) * 100).toFixed(1)}%)
-                                                                                        </span>
-                                                                                </span>
-                                                                        </div>
-                                                                {/if}
-
-                                                                {#if scanStats.quality.potential_memes > 0}
-                                                                        <div class="stat-row">
-                                                                                <span class="stat-label">🎭 Potential Memes</span>
-                                                                                <span class="stat-value">
-                                                                                        {formatNumber(scanStats.quality.potential_memes)}
-                                                                                        <span class="stat-meta">
-                                                                                                ({((scanStats.quality.potential_memes / scanStats.total_files) * 100).toFixed(1)}%)
-                                                                                        </span>
-                                                                                </span>
-                                                                        </div>
-                                                                {/if}
-
-                                                                {#if scanStats.quality.screenshots === 0 && 
-                                                                     scanStats.quality.duplicates === 0 && 
-                                                                     scanStats.quality.low_resolution === 0 &&
-                                                                     scanStats.quality.small_files === 0 &&
-                                                                     scanStats.quality.missing_metadata === 0 &&
-                                                                     scanStats.quality.potential_memes === 0}
-                                                                        <div class="stat-row">
-                                                                                <span class="stat-value" style="color: #10b981; font-style: italic;">
-                                                                                        ✨ No issues detected
-                                                                                </span>
-                                                                        </div>
-                                                                {/if}
-                                                        {:else}
-                                                                <!-- Fallback for old format -->
-                                                                <div class="stat-row">
-                                                                        <span class="stat-label">Screenshots</span>
-                                                                        <span class="stat-value">
-                                                                                {formatNumber(scanStats.screenshots)} 
-                                                                                <span class="stat-meta">
-                                                                                        ({((scanStats.screenshots / scanStats.total_files) * 100).toFixed(1)}%)
-                                                                                </span>
-                                                                        </span>
-                                                                </div>
-
-                                                                <div class="stat-row">
-                                                                        <span class="stat-label">Duplicates</span>
-                                                                        <span class="stat-value">
-                                                                                {formatNumber(scanStats.duplicates)}
-                                                                                <span class="stat-meta">
-                                                                                        ({((scanStats.duplicates / scanStats.total_files) * 100).toFixed(1)}%)
-                                                                                </span>
-                                                                        </span>
-                                                                </div>
-                                                        {/if}
-							</div>
-
-							<!-- Actions -->
+						<!-- Actions -->
 							<div class="button-stack">
 								<button class="secondary-btn" on:click={handleScanFolder}>
 									Scan Another
