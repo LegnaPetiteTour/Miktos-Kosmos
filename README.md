@@ -6,6 +6,23 @@
 [![Built with Tauri](https://img.shields.io/badge/Built%20with-Tauri-24C8DB?logo=tauri)](https://tauri.app/)
 [![Svelte](https://img.shields.io/badge/Svelte-4.0-FF3E00?logo=svelte)](https://svelte.dev/)
 
+## ⚠️ ALPHA SOFTWARE - DEVELOPMENT IN PROGRESS
+
+**Miktos Kosmos is in active alpha development.** Currently implemented:
+- ✅ Folder scanning and analysis
+- ✅ Duplicate detection (exact hash matching)
+- ✅ Screenshot identification
+- ✅ Quality issue detection (low resolution, small files, missing dates)
+- ✅ Real-time scan progress
+
+**Not yet implemented:**
+- ❌ File organization/moving (coming soon with safety features)
+- ❌ Undo functionality (will be added before any file operations)
+- ❌ Preview mode (in development)
+- ❌ Face detection (future feature)
+
+**Do not use on irreplaceable photos without backups.** Always test on a copy of your data first.
+
 ## 🎯 The Problem
 
 You have thousands of photos scattered across:
@@ -33,68 +50,79 @@ Miktos Kosmos is specifically designed to turn messy, multi-source photo librari
 
 ## 🚀 Features
 
-### Smart Detection (Local AI)
+### Currently Working
 
-- **Face Detection** - Group photos by family members
-- **Screenshot Detection** - Separate screenshots from real photos
-- **Duplicate Detection** - Find exact and near-duplicates across sources
-- **Quality Scoring** - Identify blurry, dark, or low-quality photos
+- **Folder Scanning** - Fast recursive scanning of photo directories
+- **Screenshot Detection** - Identifies screenshots by filename patterns and dimensions
+- **Duplicate Detection** - Finds exact duplicates using SHA256 hashing
+- **Quality Analysis** - Detects:
+  - Low resolution images (below 1920×1080)
+  - Small/compressed files (under 500KB)
+  - Missing EXIF metadata
+  - Potential memes/downloads (filename patterns)
+- **Real-time Progress** - Live updates during scanning
+- **Modern UI** - Clean, responsive interface
 
-### Multi-Source Intelligence
+### In Development
 
-- Merge photos from multiple sources without duplicates
-- Handle different filename formats (WhatsApp, Facebook, iPhone, etc.)
-- Preserve the best version when duplicates exist
-- Smart date extraction from EXIF and filenames
+- **Preview Mode** - See proposed changes before applying
+- **Safe File Operations** - Copy/move with transaction logs
+- **Undo System** - Rollback any changes
+- **Date-based Organization** - Organize by Year/Month structure
 
-### Organization Options
+### Planned Features
 
-- Date-based folders (Year/Month or Year/Month/Day)
-- Event-based organization
-- People-based organization
-- Custom folder structures
-
-### Safe & Reversible
-
-- Non-destructive preview mode
-- Copy by default (never moves originals)
-- Undo functionality
-- Detailed operation logs
+- Near-duplicate detection (perceptual hashing)
+- Face detection and grouping
+- Timeline view
+- Advanced filtering and search
+- Batch operations
 
 ## 📦 Installation
 
-### macOS
+**Miktos Kosmos is currently in alpha and must be built from source.**
+
+### Prerequisites
+
+- Node.js 18+ ([Download](https://nodejs.org/))
+- Rust 1.70+ ([Install via rustup](https://rustup.rs/))
+- pnpm (`npm install -g pnpm`)
+
+### Build from Source
 
 ```bash
-# Download the latest .dmg from Releases
-# Or install via Homebrew
-brew install photoarchive
+# Clone the repository
+git clone https://github.com/LegnaPetiteTour/Miktos-Kosmos.git
+cd Miktos-Kosmos
+
+# Install dependencies
+pnpm install
+
+# Run in development mode
+pnpm tauri dev
+
+# Build for production
+pnpm tauri build
 ```
 
-### Windows
+### Future Distribution
 
-```bash
-# Download the latest .msi from Releases
-# Or install via winget
-winget install photoarchive
-```
-
-### Linux
-
-```bash
-# Download the latest .appImage from Releases
-# Or install via package manager
-sudo apt install photoarchive
-```
+Once out of alpha, we'll provide:
+- macOS: .dmg installer and Homebrew
+- Windows: .msi installer and winget
+- Linux: .AppImage, .deb, and .rpm packages
 
 ## 🏃 Quick Start
 
-1. **Launch PhotoArchive**
-2. **Select Source Folder** - Point to your messy photo collection
-3. **Scan & Analyze** - Let PhotoArchive analyze your photos
-4. **Review Results** - See what it found (duplicates, screenshots, etc.)
-5. **Preview Organization** - See how your archive will look
-6. **Apply** - Create your organized family archive
+1. **Launch Miktos Kosmos** - Run `pnpm tauri dev`
+2. **Select Source Folder** - Click "Scan Folder" and choose a directory
+3. **Scan & Analyze** - Watch real-time progress as it analyzes your photos
+4. **Review Results** - See summary with:
+   - Total files and size
+   - File types breakdown
+   - Quality issues detected (duplicates, screenshots, low-res, etc.)
+
+**Note:** File organization features are coming soon. Currently, the app only scans and analyzes without modifying files.
 
 ## 🛠️ Development
 
@@ -164,43 +192,50 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 🗺️ Roadmap
 
-### v1.0 (MVP) - Current Focus
+### v0.3 (Current - Alpha)
 - [x] Project setup and architecture
-- [ ] Core scanning engine
-- [ ] EXIF extraction
-- [ ] Basic duplicate detection
+- [x] Core scanning engine with walkdir
+- [x] EXIF extraction (dates, dimensions)
+- [x] Duplicate detection (exact, via SHA256)
+- [x] Screenshot detection
+- [x] Quality metrics (low-res, small files, missing metadata)
+- [x] Real-time scan progress
+- [x] Modern UI with Summary section
+- [ ] Preview mode (in progress)
+- [ ] Operation logging system
 
-- [ ] Screenshot detection
-- [ ] Date-based organization
-- [ ] Preview mode
-- [ ] Beautiful UI
+### v0.4 (Next - Safety Infrastructure)
+- [ ] SQLite operation log
+- [ ] Transaction-based file operations
+- [ ] Undo/rollback system
+- [ ] Crash recovery
+- [ ] Preview mode before applying changes
 
+### v0.5 (File Operations)
+- [ ] Copy mode (safe default)
+- [ ] Date-based folder organization
+- [ ] Move mode (with confirmations)
+- [ ] Batch operations with progress
 
-### v1.1
-- [ ] Face detection
-- [ ] Quality scoring
-- [ ] Advanced duplicate detection
-- [ ] Undo functionality
-
-
-### v2.0
+### v1.0 (Public Beta)
+- [ ] Near-duplicate detection (perceptual hashing)
+- [ ] Configurable quality thresholds
 - [ ] Timeline view
 - [ ] Search and filtering
-- [ ] Batch editing
-- [ ] Export options
+- [ ] Comprehensive testing suite
 
-### Future
+### Future (v2.0+)
+- [ ] Face detection and grouping
+- [ ] Local ML models for quality scoring
+- [ ] Event detection
 - [ ] Mobile companion app
-- [ ] End-to-end encrypted cloud sync
-- [ ] Shared family albums
-- [ ] AI-powered organization suggestions
+- [ ] Optional encrypted backup
 
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-## 🙏 AcknowledgmentsLegnaPetiteTour/Miktos-Kosmos/issues)
-- Discussions: [Join the conversation](https://github.com/LegnaPetiteTour/Miktos-Kosmos
+## 🙏 Acknowledgments
 - ExifTool by Phil Harvey
 - Tauri team for the amazing framework
 - Svelte community
@@ -208,8 +243,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## 📧 Contact
 
-- GitHub Issues: [Report a bug or request a feature](https://github.com/yourusername/photoarchive/issues)
-- Discussions: [Join the conversation](https://github.com/yourusername/photoarchive/discussions)
+- GitHub Issues: [Report a bug or request a feature](https://github.com/LegnaPetiteTour/Miktos-Kosmos/issues)
+- Discussions: [Join the conversation](https://github.com/LegnaPetiteTour/Miktos-Kosmos/discussions)
 
 ---
 

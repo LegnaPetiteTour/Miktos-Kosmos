@@ -1,6 +1,5 @@
 use std::path::{Path, PathBuf};
 use std::fs;
-use std::collections::HashMap;
 use walkdir::WalkDir;
 use sha2::{Sha256, Digest};
 use chrono::{DateTime, Utc, NaiveDateTime};
@@ -141,7 +140,7 @@ impl Scanner {
             .count();
 
         // 6. Potential memes/downloads (suspicious filenames)
-        let suspicious_patterns = vec![
+        let suspicious_patterns = [
             "meme", "funny", "lol", "image", "download", "untitled",
             "img_", "pic_", "photo_", "picture_", "file_", "temp"
         ];

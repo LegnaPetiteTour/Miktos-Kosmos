@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { NavItem, StatusBadge } from '$lib/types';
 	import Sidebar from './Sidebar.svelte';
+	import ToolsPanel from '$lib/layouts/panels/ToolsPanel.svelte';
 	import LayoutSwitcher from '$lib/layouts/LayoutSwitcher.svelte';
 	
 	export let navItems: NavItem[];
@@ -31,6 +32,14 @@
 		overflow-y: auto;
 		background-color: var(--bg-subtle);
 	}
+	
+	.right-sidebar {
+		width: var(--tools-panel-width);
+		height: 100vh;
+		flex-shrink: 0;
+		background-color: var(--panel);
+		border-left: 1px solid var(--panel-border);
+	}
 </style>
 
 <div class="app-shell">
@@ -44,4 +53,7 @@
 			<slot />
 		</main>
 	</div>
+	<aside class="right-sidebar">
+		<ToolsPanel />
+	</aside>
 </div>
