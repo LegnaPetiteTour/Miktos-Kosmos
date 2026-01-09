@@ -143,7 +143,12 @@
 <div class="flex-workspace" bind:this={workspaceElement}>
 	<!-- Left Column: Content -->
 	<div class="panel-column" style="width: {leftWidth}%;">
-		<FlexPanel title="Content" minWidth={300} defaultFlex={1}>
+		<FlexPanel 
+			title="Content" 
+			subtitle={currentFolder?.path ? `${currentFolder.path.split('/').filter(Boolean).pop() || 'Computer'} (${currentFolder.files?.length || 0} items)` : ''}
+			minWidth={300} 
+			defaultFlex={1}
+		>
 			<ContentPanel 
 				currentPath={currentFolder?.path || ''}
 				files={currentFolder?.files || []}

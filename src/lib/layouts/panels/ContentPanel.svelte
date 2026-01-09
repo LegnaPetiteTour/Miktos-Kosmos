@@ -393,16 +393,6 @@
 </style>
 
 <div class="content-panel">
-	<div class="content-header">
-		<div class="content-title">
-			<span class="content-title-label">Content:</span>
-			<span>{folderName}</span>
-			{#if files.length > 0}
-				<span class="file-count">({files.length} items)</span>
-			{/if}
-		</div>
-	</div>
-	
 	<div class="content-body">
 		{#if loading}
 			<div class="loading-state">

@@ -8,8 +8,7 @@ mod organizer;
 mod executor;
 
 use commands::*;
-use tauri::menu::{Menu, MenuItem, Submenu, PredefinedMenuItem};
-use tauri::Manager;
+use tauri::{Emitter, menu::{Menu, MenuItem, Submenu, PredefinedMenuItem}};
 
 fn main() {
     tauri::Builder::default()

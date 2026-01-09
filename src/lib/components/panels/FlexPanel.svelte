@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	
 	export let title: string;
+	export let subtitle: string = '';
 	export let minWidth: number = 200;
 	export let minHeight: number = 150;
 	export let defaultFlex: number = 1;
@@ -81,6 +82,13 @@
 		color: var(--text);
 	}
 	
+	.panel-subtitle {
+		font-size: var(--text-sm);
+		font-weight: var(--weight-normal);
+		color: var(--text-muted);
+		margin-left: var(--space-2);
+	}
+	
 	.panel-content {
 		flex: 1;
 		overflow: auto;
@@ -126,7 +134,12 @@
 	style="flex: {flexGrow}; min-width: {minWidth}px; min-height: {minHeight}px;"
 >
 	<div class="panel-header">
-		<h3 class="panel-title">{title}</h3>
+		<h3 class="panel-title">
+			{title}
+			{#if subtitle}
+				<span class="panel-subtitle">{subtitle}</span>
+			{/if}
+		</h3>
 	</div>
 	
 	<div class="panel-content">

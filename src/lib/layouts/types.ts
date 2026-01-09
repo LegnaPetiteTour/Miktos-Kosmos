@@ -32,7 +32,6 @@ export const LAYOUTS: Record<LayoutId, LayoutConfig> = {
 		id: 'browser',
 		name: 'Browser',
 		description: 'Browse and explore your photo library',
-		icon: '⊞',
 		panels: {
 			left: [
 				{ id: 'folders', visible: true, width: 20, minWidth: 150 }
@@ -49,7 +48,6 @@ export const LAYOUTS: Record<LayoutId, LayoutConfig> = {
 		id: 'transform',
 		name: 'Transform',
 		description: 'Organize files with live preview',
-		icon: '◈',
 		panels: {
 			left: [
 				{ id: 'files', visible: true, width: 40 }
@@ -63,7 +61,6 @@ export const LAYOUTS: Record<LayoutId, LayoutConfig> = {
 		id: 'review',
 		name: 'Review',
 		description: 'View operation history and results',
-		icon: '☑',
 		panels: {
 			left: [
 				{ id: 'files', visible: true, width: 40 }
@@ -77,7 +74,6 @@ export const LAYOUTS: Record<LayoutId, LayoutConfig> = {
 		id: 'analyze',
 		name: 'Analyze',
 		description: 'Find duplicates and issues',
-		icon: '◎',
 		panels: {
 			center: [
 				{ id: 'files', visible: true, width: 60 }

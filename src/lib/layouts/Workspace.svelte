@@ -6,7 +6,6 @@
 	import PreviewPanel from './panels/PreviewPanel.svelte';
 	import MetadataPanel from './panels/MetadataPanel.svelte';
 	import ToolsPanel from './panels/ToolsPanel.svelte';
-	import HistoryPanel from './panels/HistoryPanel.svelte';
 	
 	let currentLayout: LayoutConfig;
 	
@@ -24,8 +23,6 @@
 				return MetadataPanel;
 			case 'tools':
 				return ToolsPanel;
-			case 'history':
-				return HistoryPanel;
 			default:
 				return null;
 		}

@@ -2,7 +2,9 @@
 	import { goto } from '$app/navigation';
 	import { fileStore } from '$lib/stores/photoStore';
 	import { historyStore } from '$lib/stores/historyStore';
+	import { operationsStore } from '$lib/stores/operationsStore';
 	import type { HistoryEntry } from '$lib/stores/historyStore';
+	import type { OperationResult } from '$lib/types';
 	import { invoke } from '@tauri-apps/api/core';
 	import { open } from '@tauri-apps/plugin-dialog';
 	import { listen } from '@tauri-apps/api/event';
@@ -12,6 +14,8 @@
 	let isScanning = false;
 	let scanProgress: any = null;
 	let unlisten: any = null;
+	let history: HistoryEntry[] = [];
+	let operations: OperationResult[] = [];
 	
 	// Set up event listener for real-time progress
 	onMount(async () => {
@@ -32,36 +36,20 @@
 		scanResult = value;
 	});
 	
+	historyStore.subscribe(value => {
+		history = value;
+	});
+	
+	operationsStore.subscribe(value => {
+		operations = value;
+	});
+	
 	$: hasFiles = scanResult?.files?.length > 0;
 	$: totalFiles = scanResult?.files?.length || 0;
 	
 	// Use stats from scanner directly (already calculated in Rust)
 	$: scanStats = scanResult?.stats || null;
 	
-	function formatBytes(bytes: number): string {
-		if (bytes === 0) return '0 B';
-		const k = 1024;
-		const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-		const i = Math.floor(Math.log(bytes) / Math.log(k));
-		return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
-	}
-	
-	function formatDateRange(dateRange: any): string {
-		if (!dateRange || !dateRange[0] || !dateRange[1]) return 'Unknown';
-		
-		const start = new Date(dateRange[0]).toLocaleDateString('en-US', { 
-			month: 'short', 
-			year: 'numeric' 
-		});
-		const end = new Date(dateRange[1]).toLocaleDateString('en-US', { 
-			month: 'short', 
-			year: 'numeric' 
-		});
-		
-		if (start === end) return start;
-		return `${start} → ${end}`;
-	}
-
 	function formatNumber(num: number): string {
 		return num.toLocaleString();
 	}
@@ -95,7 +83,10 @@
 		analyze: false,
 		organize: false,
 		review: false,
-		export: false
+		export: false,
+		history: false,
+		operations: false,
+		system: false
 	};
 	
 	function toggleSection(section: string) {
@@ -181,6 +172,50 @@
 	// Feature buttons (placeholder)
 	function handleFeature(feature: string) {
 		console.log(`${feature} clicked - coming soon!`);
+	}
+	
+	// History helper functions
+	function formatBytes(bytes: number): string {
+		if (bytes === 0) return '0 MB';
+		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+		if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+		return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+	}
+	
+	function formatDate(isoString: string): string {
+		const date = new Date(isoString);
+		return date.toLocaleString('en-US', {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit'
+		});
+	}
+	
+	function formatDateRange(start?: string, end?: string): string {
+		if (!start || !end) return 'No dates';
+		const startYear = new Date(start).getFullYear();
+		const endYear = new Date(end).getFullYear();
+		return startYear === endYear ? `${startYear}` : `${startYear} → ${endYear}`;
+	}
+	
+	function getStatusIcon(status: string): string {
+		switch(status) {
+			case 'success': return '✓';
+			case 'warning': return '⚠';
+			case 'error': return '✕';
+			default: return '•';
+		}
+	}
+	
+	function getStatusColor(status: string): string {
+		switch(status) {
+			case 'success': return 'var(--success)';
+			case 'warning': return 'var(--warning)';
+			case 'error': return 'var(--danger)';
+			default: return 'var(--text-muted)';
+		}
 	}
 </script>
 
@@ -593,6 +628,93 @@
 		margin-top: 16px;
 	}
 	
+	/* History */
+	.history-list {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+	
+	.history-item {
+		padding: 12px;
+		background: #242424;
+		border-radius: 6px;
+		border-left: 3px solid #3b82f6;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	
+	.history-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		margin-bottom: 4px;
+	}
+	
+	.history-icon {
+		font-size: 14px;
+		font-weight: bold;
+	}
+	
+	.history-date {
+		font-size: 11px;
+		color: #909090;
+	}
+	
+	.history-path {
+		font-size: 11px;
+		color: #707070;
+		font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		padding: 6px 8px;
+		background: rgba(0, 0, 0, 0.3);
+		border-radius: 4px;
+	}
+	
+	.history-stats {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		margin-top: 4px;
+	}
+	
+	/* Operations */
+	.operation-item {
+		border-left-color: var(--success);
+	}
+	
+	.operation-item.failed {
+		border-left-color: var(--danger);
+	}
+	
+	.operation-status {
+		font-size: 14px;
+		font-weight: bold;
+		color: var(--success);
+	}
+	
+	.operation-item.failed .operation-status {
+		color: var(--danger);
+	}
+	
+	.operation-stats {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+	
+	.stat-success {
+		color: var(--success) !important;
+	}
+	
+	.stat-failed {
+		color: var(--danger) !important;
+	}
+	
 	/* Spacing utilities */
 	.mt-16 { margin-top: 16px; }
 	.mb-16 { margin-bottom: 16px; }
@@ -985,6 +1107,166 @@
 							Load files first to export data.
 						</div>
 					{/if}
+				</div>
+			{/if}
+		</div>
+		
+		<!-- HISTORY -->
+		<div class="section">
+			<button 
+				class="section-header"
+				class:active={expandedSections.history}
+				on:click={() => toggleSection('history')}
+			>
+				<div class="section-title-group">
+					<h3 class="section-title">Scan History</h3>
+				</div>
+				<span class="section-chevron" class:expanded={expandedSections.history}>▶</span>
+			</button>
+			
+			{#if expandedSections.history}
+				<div class="section-body">
+					{#if history.length === 0}
+						<div class="empty-state">
+							<p class="empty-text">No workspace history yet.<br/>Scan a folder to begin.</p>
+						</div>
+					{:else}
+						<div class="history-list">
+							{#each history as entry}
+								<div class="history-item" style="border-left-color: {getStatusColor(entry.status)}">
+									<div class="history-header">
+										<span class="history-icon" style="color: {getStatusColor(entry.status)}">
+											{getStatusIcon(entry.status)}
+										</span>
+										<span class="history-date">{formatDate(entry.timestamp)}</span>
+									</div>
+									
+									<div class="history-path" title={entry.folder_path}>
+										{entry.folder_path}
+									</div>
+									
+									<div class="history-stats">
+										<div class="stat-row">
+											<span class="stat-label">📁 Files</span>
+											<span class="stat-value">{entry.total_files}</span>
+										</div>
+										<div class="stat-row">
+											<span class="stat-label">💾 Size</span>
+											<span class="stat-value">{formatBytes(entry.total_size)}</span>
+										</div>
+										<div class="stat-row">
+											<span class="stat-label">📅 Date Range</span>
+											<span class="stat-value">{formatDateRange(entry.date_range_start, entry.date_range_end)}</span>
+										</div>
+										{#if entry.errors > 0 || entry.warnings > 0}
+											<div class="stat-row">
+												<span class="stat-label" style="color: var(--danger)">⚠ Issues</span>
+												<span class="stat-value" style="color: var(--danger)">{entry.errors} errors, {entry.warnings} warnings</span>
+											</div>
+										{:else}
+											<div class="stat-row">
+												<span class="stat-label" style="color: var(--success)">✓ Status</span>
+												<span class="stat-value" style="color: var(--success)">No errors</span>
+											</div>
+										{/if}
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/if}
+		</div>
+		
+		<!-- OPERATIONS -->
+		<div class="section">
+			<button 
+				class="section-header"
+				class:active={expandedSections.operations}
+				on:click={() => toggleSection('operations')}
+			>
+				<div class="section-title-group">
+					<h3 class="section-title">Operations History</h3>
+				</div>
+				<span class="section-chevron" class:expanded={expandedSections.operations}>▶</span>
+			</button>
+			
+			{#if expandedSections.operations}
+				<div class="section-body">
+					{#if operations.length === 0}
+						<div class="empty-state">
+							<p class="empty-text">No operations yet.<br/>Use tools to process files.</p>
+						</div>
+					{:else}
+						<div class="history-list">
+							{#each operations as operation, index}
+								<div class="history-item operation-item" class:failed={!operation.success}>
+									<div class="history-header">
+										<span class="operation-status">{operation.success ? '✓' : '⚠'}</span>
+										<span class="history-date">Operation #{operations.length - index}</span>
+									</div>
+									
+									<div class="stat-row">
+										<span class="stat-label">Time</span>
+										<span class="stat-value">{formatDate(operation.timestamp)}</span>
+									</div>
+									
+									<div class="operation-stats">
+										<div class="stat-row">
+											<span class="stat-label stat-success">✓ Success</span>
+											<span class="stat-value">{operation.successful_count}</span>
+										</div>
+										<div class="stat-row">
+											<span class="stat-label stat-failed">✕ Failed</span>
+											<span class="stat-value">{operation.failed_count}</span>
+										</div>
+										<div class="stat-row">
+											<span class="stat-label">⏱ Duration</span>
+											<span class="stat-value">{(operation.duration_ms / 1000).toFixed(2)}s</span>
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/if}
+		</div>
+		
+		<!-- SYSTEM INFO -->
+		<div class="section">
+			<button 
+				class="section-header"
+				class:active={expandedSections.system}
+				on:click={() => toggleSection('system')}
+			>
+				<div class="section-title-group">
+					<h3 class="section-title">System Info</h3>
+				</div>
+				<span class="section-chevron" class:expanded={expandedSections.system}>▶</span>
+			</button>
+			
+			{#if expandedSections.system}
+				<div class="section-body">
+					<div class="stat-row">
+						<span class="stat-label">Workspaces Scanned</span>
+						<span class="stat-value">{history.length} total</span>
+					</div>
+					
+					<div class="stat-row">
+						<span class="stat-label">Operations Performed</span>
+						<span class="stat-value">{operations.length} total</span>
+					</div>
+					
+					<div class="stat-row">
+						<span class="stat-label">Storage Mode</span>
+						<span class="stat-value">Local-only</span>
+					</div>
+					
+					<div class="stat-row">
+						<span class="stat-label">Safety Mode</span>
+						<span class="stat-value">Safe mode</span>
+					</div>
 				</div>
 			{/if}
 		</div>

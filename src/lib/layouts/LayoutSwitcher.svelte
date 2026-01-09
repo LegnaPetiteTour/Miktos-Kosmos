@@ -13,7 +13,7 @@
 		layoutStore.setLayout(layoutId);
 	}
 	
-	const layoutOptions: LayoutId[] = ['browser', 'transform', 'review', 'analyze'];
+	const layoutOptions: LayoutId[] = ['browser', 'analyze', 'transform', 'review'];
 </script>
 
 <style>
