@@ -740,8 +740,9 @@
 						<div 
 							class="list-item"
 							class:selected={index === selectedIndex}
-							on:click={() => selectFile(file, index)}
-						>
+							on:click={() => selectFile(file, index)}						on:keydown={(e) => e.key === 'Enter' && selectFile(file, index)}
+						role="button"
+						tabindex="0"						>
 							{#if isImageFile(file)}
 								<div class="list-thumbnail">
 									<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" />
@@ -865,8 +866,7 @@
 					<button 
 						class="size-btn" 
 						on:click={() => itemSize = Math.max(60, itemSize - 20)}
-						disabled={!sliderEnabled}
-					>
+						disabled={!sliderEnabled}					aria-label="Decrease item size"					>
 						<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
 							<path d="M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
 						</svg>
@@ -882,8 +882,7 @@
 					<button 
 						class="size-btn" 
 						on:click={() => itemSize = Math.min(300, itemSize + 20)}
-						disabled={!sliderEnabled}
-					>
+						disabled={!sliderEnabled}					aria-label="Increase item size"					>
 						<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
 							<path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
 						</svg>
