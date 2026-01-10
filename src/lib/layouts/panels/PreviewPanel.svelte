@@ -377,7 +377,7 @@
 					src={fileUrl}
 					class="preview-pdf"
 					title={selectedFile.name}
-				/>
+				></iframe>
 			</div>
 			<div class="preview-info">
 				<div class="preview-filename">{selectedFile.name}</div>

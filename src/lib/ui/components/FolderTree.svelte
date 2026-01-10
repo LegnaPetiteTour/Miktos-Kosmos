@@ -152,7 +152,7 @@
 <div class="folder-tree">
 	{#each rootFolders as folder}
 		<div>
-			<div class="folder-item" on:click={() => toggleFolder(folder)}>
+			<div class="folder-item" on:click={() => toggleFolder(folder)} on:keydown={(e) => e.key === 'Enter' && toggleFolder(folder)} role="button" tabindex="0">
 				{#if folder.is_dir}
 					<span class="folder-arrow" class:expanded={folder.expanded}>▶</span>
 				{:else}
@@ -173,7 +173,7 @@
 			{#if folder.expanded && folder.children}
 				<div class="folder-children">
 					{#each folder.children as child}
-						<div class="folder-item" on:click={() => toggleFolder(child)}>
+						<div class="folder-item" on:click={() => toggleFolder(child)} on:keydown={(e) => e.key === 'Enter' && toggleFolder(child)} role="button" tabindex="0">
 							{#if child.is_dir}
 								<span class="folder-arrow" class:expanded={child.expanded}>▶</span>
 							{:else}
@@ -188,7 +188,7 @@
 						{#if child.expanded && child.children}
 							<div class="folder-children">
 								{#each child.children as grandchild}
-									<div class="folder-item" on:click={() => selectFolder(grandchild)}>
+								<div class="folder-item" on:click={() => selectFolder(grandchild)} on:keydown={(e) => e.key === 'Enter' && selectFolder(grandchild)} role="button" tabindex="0">
 										<span class="folder-arrow"></span>
 										<span class="folder-icon">
 											{grandchild.is_dir ? '📁' : '📄'}

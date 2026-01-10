@@ -4,11 +4,11 @@
 	import ToolsPanel from '$lib/layouts/panels/ToolsPanel.svelte';
 	import LayoutSwitcher from '$lib/layouts/LayoutSwitcher.svelte';
 	
-	export let navItems: NavItem[];
-	export let selectedNavId: string;
-	export let onNavSelect: (id: string) => void;
-	export let workspaceLabel: string | undefined = undefined;
-	export let statusBadges: StatusBadge[] = [];
+	export const navItems: NavItem[] = [];
+	export const selectedNavId: string = '';
+	export const onNavSelect: (id: string) => void = () => {};
+	export const workspaceLabel: string | undefined = undefined;
+	export const statusBadges: StatusBadge[] = [];
 </script>
 
 <style>

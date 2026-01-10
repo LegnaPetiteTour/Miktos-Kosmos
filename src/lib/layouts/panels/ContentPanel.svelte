@@ -15,12 +15,37 @@
 	let tableElement: HTMLDivElement;
 	
 	// View controls
-	type ViewMode = 'grid' | 'list' | 'details' | 'thumbnails';
+	type ViewMode = 'list' | 'details' | 'thumbnails';
 	let viewMode: ViewMode = 'details';
-	let itemSize: number = 80; // Size in pixels (for thumbnails/grid) - Better default
+	let itemSize: number = 120; // Size in pixels (for thumbnails/grid) - Better default
 	
 	// Check if current view mode uses the slider
-	$: sliderEnabled = viewMode === 'grid' || viewMode === 'thumbnails';
+	$: sliderEnabled = viewMode === 'thumbnails';
+	
+	// Compute CSS variable for item size (prevents excessive reactivity)
+	$: itemSizeStyle = `--item-size: ${itemSize}px;`;
+	
+	// Performance optimization: Limit rendered items for grid/thumbnails views
+	const ITEMS_PER_PAGE = 200; // Increased from 100 for faster initial load
+	let displayedItemsCount = ITEMS_PER_PAGE;
+	
+	// Reset displayed items when folder changes or view mode changes
+	$: if (currentPath || viewMode) {
+		displayedItemsCount = ITEMS_PER_PAGE;
+	}
+	
+	// Get visible files based on view mode
+	$: visibleFiles = viewMode === 'thumbnails'
+		? sortedFiles.slice(0, displayedItemsCount)
+		: sortedFiles;
+	
+	// Check if there are more items to load
+	$: hasMoreItems = displayedItemsCount < sortedFiles.length;
+	
+	// Load more items
+	function loadMoreItems() {
+		displayedItemsCount = Math.min(displayedItemsCount + ITEMS_PER_PAGE, sortedFiles.length);
+	}
 	
 	// Extract folder name from path
 	$: folderName = currentPath.split('/').filter(Boolean).pop() || 'Computer';
@@ -64,23 +89,69 @@
 	function handleKeyDown(event: KeyboardEvent) {
 		if (sortedFiles.length === 0) return;
 		
+		// Calculate items per row for thumbnail/grid navigation
+		let itemsPerRow = 1;
+		if (viewMode === 'thumbnails' && tableElement) {
+			const container = tableElement;
+			const containerWidth = container.clientWidth;
+			const itemWidth = itemSize + 8; // itemSize + gap (var(--space-2))
+			itemsPerRow = Math.floor(containerWidth / itemWidth) || 1;
+		}
+		
 		switch(event.key) {
 			case 'ArrowDown':
 				event.preventDefault();
-				if (selectedIndex < sortedFiles.length - 1) {
-					selectedIndex++;
-					scrollToSelected();
-				} else if (selectedIndex === -1 && sortedFiles.length > 0) {
-					selectedIndex = 0;
-					scrollToSelected();
+				if (viewMode === 'thumbnails') {
+					// Move down by one row
+					const newIndex = Math.min(selectedIndex + itemsPerRow, sortedFiles.length - 1);
+					if (selectedIndex === -1) {
+						selectedIndex = 0;
+					} else {
+						selectedIndex = newIndex;
+					}
+				} else {
+					// Move down by one item
+					if (selectedIndex < sortedFiles.length - 1) {
+						selectedIndex++;
+					} else if (selectedIndex === -1 && sortedFiles.length > 0) {
+						selectedIndex = 0;
+					}
 				}
+				scrollToSelected();
 				break;
 				
 			case 'ArrowUp':
 				event.preventDefault();
-				if (selectedIndex > 0) {
-					selectedIndex--;
-					scrollToSelected();
+				if (viewMode === 'thumbnails') {
+					// Move up by one row
+					const newIndex = Math.max(selectedIndex - itemsPerRow, 0);
+					selectedIndex = newIndex;
+				} else {
+					// Move up by one item
+					if (selectedIndex > 0) {
+						selectedIndex--;
+					}
+				}
+				scrollToSelected();
+				break;
+				
+			case 'ArrowLeft':
+				if (viewMode === 'thumbnails') {
+					event.preventDefault();
+					if (selectedIndex > 0) {
+						selectedIndex--;
+						scrollToSelected();
+					}
+				}
+				break;
+				
+			case 'ArrowRight':
+				if (viewMode === 'thumbnails') {
+					event.preventDefault();
+					if (selectedIndex < sortedFiles.length - 1) {
+						selectedIndex++;
+						scrollToSelected();
+					}
 				}
 				break;
 				
@@ -117,10 +188,27 @@
 	function scrollToSelected() {
 		if (!tableElement) return;
 		
-		const rows = tableElement.querySelectorAll('tbody tr');
-		if (selectedIndex >= 0 && selectedIndex < rows.length) {
-			const row = rows[selectedIndex] as HTMLElement;
-			row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		let element: HTMLElement | null = null;
+		
+		if (viewMode === 'details') {
+			const rows = tableElement.querySelectorAll('tbody tr');
+			if (selectedIndex >= 0 && selectedIndex < rows.length) {
+				element = rows[selectedIndex] as HTMLElement;
+			}
+		} else if (viewMode === 'list') {
+			const items = tableElement.querySelectorAll('.list-item');
+			if (selectedIndex >= 0 && selectedIndex < items.length) {
+				element = items[selectedIndex] as HTMLElement;
+			}
+		} else if (viewMode === 'thumbnails') {
+			const items = tableElement.querySelectorAll('.thumbnail-item');
+			if (selectedIndex >= 0 && selectedIndex < items.length) {
+				element = items[selectedIndex] as HTMLElement;
+			}
+		}
+		
+		if (element) {
+			element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 		}
 	}
 	
@@ -345,6 +433,7 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		image-rendering: -webkit-optimize-contrast;
 	}
 	
 	.file-icon {
@@ -361,6 +450,35 @@
 		text-align: center;
 		color: var(--text-muted);
 		font-size: var(--text-sm);
+	}
+	
+	.load-more {
+		display: flex;
+		justify-content: center;
+		padding: var(--space-4);
+		border-top: 1px solid var(--border);
+	}
+	
+	.load-more-btn {
+		padding: var(--space-2) var(--space-4);
+		background: var(--accent);
+		color: white;
+		border: none;
+		border-radius: 6px;
+		font-size: var(--text-sm);
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+	
+	.load-more-btn:hover {
+		background: var(--accent-hover);
+		transform: translateY(-1px);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	}
+	
+	.load-more-btn:active {
+		transform: translateY(0);
 	}
 	
 	.view-controls {
@@ -518,6 +636,7 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		image-rendering: -webkit-optimize-contrast;
 	}
 
 	.list-icon {
@@ -546,139 +665,83 @@
 		color: rgba(255, 255, 255, 0.8);
 	}
 
-	/* Grid View Styles */
-	.grid-view {
-	flex: 1;
-	overflow-y: auto;
-	padding: var(--space-3);
-	display: grid;
-	/* Responsive grid - adjusts based on itemSize */
-	grid-template-columns: repeat(auto-fill, minmax(var(--item-size), 1fr));
-	gap: var(--space-3);
-	 align-content: start;
-	}
-	
-	.grid-item {
-	display: flex;
-	flex-direction: column;
-	cursor: pointer;
-	border-radius: 8px;
-	overflow: hidden;
-	 transition: transform 0.15s ease, box-shadow 0.15s ease;
-	 aspect-ratio: 1; /* Keep items square */
-	}
-	
-	.grid-item:hover {
-	 transform: translateY(-2px);
-	 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-	}
-	
-	.grid-item.selected {
-	 box-shadow: 0 0 0 3px var(--accent);
-	}
-	
-	.grid-preview {
-	flex: 1;
-	width: 100%;
-	background: var(--bg-subtle);
-	display: flex;
-	 align-items: center;
-	 justify-content: center;
-	 overflow: hidden;
-	}
-	
-	.grid-preview img {
-	 width: 100%;
-	 height: 100%;
-	 object-fit: cover;
-	}
-	
-	.grid-icon {
-	 color: var(--text-muted);
-	font-size: clamp(24px, 40%, 48px);
-	}
-	
-	.grid-name {
-	padding: var(--space-2);
-	font-size: var(--text-xs);
-	text-align: center;
-	 white-space: nowrap;
-	 overflow: hidden;
-	 text-overflow: ellipsis;
-	background: var(--panel);
-	max-height: 40px;
-	}
-	
-	.grid-item.selected .grid-name {
-		background: var(--accent);
-		color: white;
-	}
-
 	/* Thumbnails View Styles */
 	.thumbnails-view {
-	flex: 1;
-	overflow-y: auto;
-	padding: var(--space-3);
-	display: grid;
-	/* Responsive grid - adjusts based on itemSize */
-	grid-template-columns: repeat(auto-fill, minmax(var(--item-size), 1fr));
-	gap: var(--space-2);
-	 align-content: start;
+		flex: 1;
+		overflow-y: auto;
+		padding: var(--space-3);
+		display: grid;
+		grid-template-columns: repeat(auto-fill, var(--item-size));
+		gap: var(--space-2);
+		align-content: start;
+		justify-content: start;
 	}
 	
 	.thumbnail-item {
-	display: flex;
-	flex-direction: column;
-	cursor: pointer;
-	border-radius: 6px;
-	overflow: hidden;
-	 transition: transform 0.15s ease;
-	 aspect-ratio: 1; /* Keep items square */
+		width: var(--item-size);
+		height: var(--item-size);
+		display: flex;
+		flex-direction: column;
+		cursor: pointer;
+		border-radius: 6px;
+		overflow: hidden;
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+		background: var(--panel);
+		position: relative;
 	}
 	
 	.thumbnail-item:hover {
-	 transform: scale(1.05);
+		transform: scale(1.05);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 	}
 	
 	.thumbnail-item.selected {
-	 box-shadow: 0 0 0 2px var(--accent);
+		box-shadow: 0 0 0 3px var(--accent);
 	}
 	
 	.thumbnail-preview {
-	flex: 1;
-	width: 100%;
-	background: var(--bg-subtle);
-	display: flex;
-	 align-items: center;
-	 justify-content: center;
-	 overflow: hidden;
+		width: 100%;
+		height: 100%;
+		background: var(--bg-subtle);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
 	}
 	
 	.thumbnail-preview img {
-	 width: 100%;
-	 height: 100%;
-	 object-fit: cover;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		image-rendering: -webkit-optimize-contrast;
+		image-rendering: crisp-edges;
+		will-change: transform;
 	}
 	
 	.thumbnail-icon {
-	 color: var(--text-muted);
-	font-size: clamp(16px, 30%, 32px);
+		color: var(--text-muted);
+		font-size: clamp(24px, 30%, 48px);
 	}
 	
 	.thumbnail-name {
-	padding: var(--space-1);
-	font-size: 10px;
-	text-align: center;
-	 white-space: nowrap;
-	 overflow: hidden;
-	 text-overflow: ellipsis;
-	background: var(--panel);
-	max-height: 24px;
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		padding: var(--space-1) var(--space-2);
+		font-size: 10px;
+		text-align: center;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+		color: white;
+		opacity: 0;
+		transition: opacity 0.2s ease;
 	}
 	
-	.thumbnail-item.selected .thumbnail-name {
-		background: var(--accent);
-		color: white;
+	.thumbnail-item:hover .thumbnail-name {
+		opacity: 1;
 	}
 </style>
 
@@ -709,7 +772,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each sortedFiles as file, index}
+							{#each visibleFiles as file, index}
 								<tr 
 									class:selected={index === selectedIndex}
 									on:click={() => selectFile(file, index)}
@@ -736,7 +799,7 @@
 				</div>
 			{:else if viewMode === 'list'}
 				<div class="list-view" bind:this={tableElement}>
-					{#each sortedFiles as file, index}
+					{#each visibleFiles as file, index}
 						<div 
 							class="list-item"
 							class:selected={index === selectedIndex}
@@ -745,7 +808,7 @@
 						tabindex="0"						>
 							{#if isImageFile(file)}
 								<div class="list-thumbnail">
-									<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" />
+							<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" decoding="async" />
 								</div>
 							{:else}
 								<span class="list-icon">{getFileIcon(file)}</span>
@@ -759,29 +822,9 @@
 						</div>
 					{/each}
 				</div>
-			{:else if viewMode === 'grid'}
-				<div class="grid-view" bind:this={tableElement} style="--item-size: {itemSize}px;">
-					{#each sortedFiles as file, index}
-						<div 
-							class="grid-item"
-							class:selected={index === selectedIndex}
-							on:click={() => selectFile(file, index)}						on:keydown={(e) => e.key === 'Enter' && selectFile(file, index)}
-						role="button"
-						tabindex="0"						>
-							<div class="grid-preview">
-								{#if isImageFile(file)}
-									<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" />
-								{:else}
-									<span class="grid-icon">{getFileIcon(file)}</span>
-								{/if}
-							</div>
-							<div class="grid-name">{file.name}</div>
-						</div>
-					{/each}
-				</div>
 			{:else if viewMode === 'thumbnails'}
-				<div class="thumbnails-view" bind:this={tableElement} style="--item-size: {itemSize}px;">
-					{#each sortedFiles as file, index}
+				<div class="thumbnails-view" bind:this={tableElement} style={itemSizeStyle}>
+					{#each visibleFiles as file, index}
 						<div 
 							class="thumbnail-item"
 							class:selected={index === selectedIndex}
@@ -790,7 +833,7 @@
 						tabindex="0"						>
 							<div class="thumbnail-preview">
 								{#if isImageFile(file)}
-									<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" />
+							<img src={getThumbnailUrl(file)} alt={file.name} loading="lazy" decoding="async" />
 								{:else}
 									<span class="thumbnail-icon">{getFileIcon(file)}</span>
 								{/if}
@@ -800,21 +843,17 @@
 					{/each}
 				</div>
 			{/if}
+			
+			{#if hasMoreItems}
+				<div class="load-more">
+					<button class="load-more-btn" on:click={loadMoreItems}>
+						Load More ({sortedFiles.length - displayedItemsCount} remaining)
+					</button>
+				</div>
+			{/if}
+			
 			<div class="view-controls">
 				<div class="view-modes">
-					<button 
-						class="view-mode-btn" 
-						class:active={viewMode === 'grid'}
-						on:click={() => viewMode = 'grid'}
-						title="Grid view"
-					>
-						<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-							<rect x="1" y="1" width="6" height="6" rx="1"/>
-							<rect x="9" y="1" width="6" height="6" rx="1"/>
-							<rect x="1" y="9" width="6" height="6" rx="1"/>
-							<rect x="9" y="9" width="6" height="6" rx="1"/>
-						</svg>
-					</button>
 					<button 
 						class="view-mode-btn" 
 						class:active={viewMode === 'thumbnails'}

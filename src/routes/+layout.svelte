@@ -62,29 +62,39 @@
 		}
 	}
 	
-	onMount(async () => {
+	onMount(() => {
 		// Initialize theme
 		themeStore.initialize();
 		
 		// Listen for menu events from Tauri
-		const unlistenAbout = await listen('show-about', () => {
+		let unlistenAbout: (() => void) | undefined;
+		let unlistenSettings: (() => void) | undefined;
+		let unlistenLearn: (() => void) | undefined;
+		
+		listen('show-about', () => {
 			showAboutDialog = true;
+		}).then((unlisten) => {
+			unlistenAbout = unlisten;
 		});
 		
-		const unlistenSettings = await listen('show-settings', () => {
+		listen('show-settings', () => {
 			showSettingsDialog = true;
+		}).then((unlisten) => {
+			unlistenSettings = unlisten;
 		});
 		
-		const unlistenLearn = await listen('show-learn', () => {
+		listen('show-learn', () => {
 			showLearnDialog = true;
+		}).then((unlisten) => {
+			unlistenLearn = unlisten;
 		});
 		
 		console.log('Command Center initialized');
 		
 		return () => {
-			unlistenAbout();
-			unlistenSettings();
-			unlistenLearn();
+			unlistenAbout?.();
+			unlistenSettings?.();
+			unlistenLearn?.();
 		};
 	});
 </script>
@@ -101,8 +111,8 @@
 
 <!-- Simple Dialog Overlays -->
 {#if showAboutDialog}
-	<div class="dialog-overlay" on:click={() => showAboutDialog = false}>
-		<div class="dialog-content" on:click|stopPropagation>
+	<div class="dialog-overlay" on:click={() => showAboutDialog = false} on:keydown={(e) => e.key === 'Escape' && (showAboutDialog = false)} role="button" tabindex="0">
+		<div class="dialog-content" on:click|stopPropagation on:keydown role="button" tabindex="-1">
 			<h2>About Miktos Kosmos</h2>
 			<p class="version">Version 0.3.0 Alpha</p>
 			<p>Privacy-first family photo organizer.</p>
@@ -114,8 +124,8 @@
 {/if}
 
 {#if showSettingsDialog}
-	<div class="dialog-overlay" on:click={() => showSettingsDialog = false}>
-		<div class="dialog-content" on:click|stopPropagation>
+	<div class="dialog-overlay" on:click={() => showSettingsDialog = false} on:keydown={(e) => e.key === 'Escape' && (showSettingsDialog = false)} role="button" tabindex="0">
+		<div class="dialog-content" on:click|stopPropagation on:keydown role="button" tabindex="-1">
 			<h2>Settings</h2>
 			<p>Settings panel coming soon...</p>
 			<button class="dialog-close" on:click={() => showSettingsDialog = false}>Close</button>
@@ -124,8 +134,8 @@
 {/if}
 
 {#if showLearnDialog}
-	<div class="dialog-overlay" on:click={() => showLearnDialog = false}>
-		<div class="dialog-content" on:click|stopPropagation>
+	<div class="dialog-overlay" on:click={() => showLearnDialog = false} on:keydown={(e) => e.key === 'Escape' && (showLearnDialog = false)} role="button" tabindex="0">
+		<div class="dialog-content" on:click|stopPropagation on:keydown role="button" tabindex="-1">
 			<h2>Learn Miktos Kosmos</h2>
 			<p>Learning resources coming soon...</p>
 			<button class="dialog-close" on:click={() => showLearnDialog = false}>Close</button>
