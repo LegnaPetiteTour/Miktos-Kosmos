@@ -68,10 +68,6 @@
 	.workspace-right {
 		flex-shrink: 0;
 	}
-	
-	.workspace-bottom {
-		flex-shrink: 0;
-	}
 </style>
 
 <div class="workspace">
@@ -126,8 +122,7 @@
 						<PreviewPanel />
 					{:else if panelConfig.id === 'metadata'}
 						<MetadataPanel />
-					{:else if panelConfig.id === 'history'}
-						<HistoryPanel />
+
 					{:else}
 						<div style="color: var(--text-muted);">
 							{panelConfig.id} panel (coming soon)

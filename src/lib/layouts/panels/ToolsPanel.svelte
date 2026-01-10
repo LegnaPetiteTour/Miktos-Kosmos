@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { fileStore } from '$lib/stores/photoStore';
+	import { fileStore, type ScanResult } from '$lib/stores/photoStore';
 	import { historyStore } from '$lib/stores/historyStore';
 	import { operationsStore } from '$lib/stores/operationsStore';
 	import type { HistoryEntry } from '$lib/stores/historyStore';
@@ -124,7 +124,7 @@
 					percentage: 100 
 				};
 				
-				fileStore.setScanResult(result);
+				fileStore.setScanResult(result as ScanResult);
 				
 				// Add to history
 				const stats = (result as any).stats;
@@ -404,13 +404,6 @@
 		50% { opacity: 0.7; }
 	}
 	
-	.loading-text {
-		margin: 0;
-		font-size: 12px;
-		color: var(--text-muted);
-		text-align: center;
-	}
-	
 	.loading-stats {
 		display: flex;
 		justify-content: space-between;
@@ -615,14 +608,6 @@
 		margin: 0;
 	}
 	
-	.option label {
-		font-size: 13px;
-		color: #d0d0d0;
-		cursor: pointer;
-		flex: 1;
-		margin: 0;
-	}
-	
 	/* Info Box */
 	.info-box {
 		padding: 12px;
@@ -653,7 +638,6 @@
 	
 	/* Spacing utilities */
 	.mt-16 { margin-top: 16px; }
-	.mb-16 { margin-bottom: 16px; }
 </style>
 
 <div class="tools-panel">
@@ -755,13 +739,13 @@
 							
 							<!-- File Types (inline) -->
 							{#each Object.entries(scanStats.file_types) as [type, count]}
-								{#if count > 0}
-									<div class="stat-row">
-										<span class="stat-label">{type.charAt(0).toUpperCase() + type.slice(1)}</span>
-										<span class="stat-value">{formatNumber(count)}</span>
-									</div>
-								{/if}
-							{/each}
+							 {#if (count as number) > 0}
+							 <div class="stat-row">
+							 <span class="stat-label">{type.charAt(0).toUpperCase() + type.slice(1)}</span>
+							 <span class="stat-value">{formatNumber(count as number)}</span>
+							  </div>
+							{/if}
+						{/each}
 							
 							<!-- Quality Metrics (inline, only show if > 0) -->
 							{#if scanStats.quality}

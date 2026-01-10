@@ -338,30 +338,22 @@
 								<div 
 									class="favorite-item" 
 									on:click={() => toggleFavorite(i)}
-									role="button"
-									tabindex="0"
-								>
-									<span class="folder-arrow" class:expanded={favorite.expanded}>▶</span>
-									<span class="favorite-icon">📁</span>
-									<span class="favorite-name">{favorite.name}</span>
-								</div>
-								
-								<!-- Subfolders -->
-								{#if favorite.expanded && favorite.children && favorite.children.length > 0}
+								on:keydown={(e) => e.key === 'Enter' && toggleFavorite(i)}
+								role="button"
+								tabindex="0"
+							>
+								<span class="folder-arrow" class:expanded={favorite.expanded}>▶</span>
 									<div class="favorite-children">
 										{#each favorite.children as child, j (child.path)}
 											<div>
 												<div 
 													class="favorite-item" 
 													on:click={() => toggleSubfolder(i, j)}
-													role="button"
-													tabindex="0"
-												>
-													<span class="folder-arrow" class:expanded={child.expanded}>▶</span>
-													<span class="favorite-icon">📁</span>
-													<span class="favorite-name">{child.name}</span>
-												</div>
-												
+											on:keydown={(e) => e.key === 'Enter' && toggleSubfolder(i, j)}
+											role="button"
+											tabindex="0"
+										>
+											<span class="folder-arrow" class:expanded={child.expanded}>▶</span>
 												<!-- Sub-subfolders -->
 												{#if child.expanded && child.children && child.children.length > 0}
 													<div class="favorite-children">

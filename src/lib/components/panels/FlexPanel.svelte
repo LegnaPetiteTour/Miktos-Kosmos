@@ -6,7 +6,7 @@
 	export let minWidth: number = 200;
 	export let minHeight: number = 150;
 	export let defaultFlex: number = 1;
-	export let allowHorizontalResize: boolean = false; // NEW: Control horizontal resize
+	export const allowHorizontalResize: boolean = false; // NEW: Control horizontal resize
 	
 	let flexGrow = defaultFlex;
 	let isResizing = false;
@@ -151,15 +151,17 @@
 		class="resize-handle resize-top"
 		class:active={isResizing && resizeEdge === 'top'}
 		on:mousedown={(e) => handleResizeStart(e, 'top')}
-		role="separator"
-		aria-orientation="horizontal"
+		role="button"
+		aria-label="Resize panel from top"
+		tabindex="0"
 	></div>
 	
 	<div 
 		class="resize-handle resize-bottom"
 		class:active={isResizing && resizeEdge === 'bottom'}
 		on:mousedown={(e) => handleResizeStart(e, 'bottom')}
-		role="separator"
-		aria-orientation="horizontal"
+		role="button"
+		aria-label="Resize panel from bottom"
+		tabindex="0"
 	></div>
 </div>

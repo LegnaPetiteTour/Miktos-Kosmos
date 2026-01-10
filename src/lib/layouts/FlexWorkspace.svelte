@@ -161,9 +161,9 @@
 			class="column-resize-handle"
 			class:active={isResizing}
 			on:mousedown={handleColumnResizeStart}
-			role="separator"
-			aria-orientation="vertical"
-			title="Drag to resize"
+			role="button"
+			aria-label="Resize columns"
+			tabindex="0"
 		></div>
 	</div>
 	
